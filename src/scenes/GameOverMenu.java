@@ -26,7 +26,7 @@ public class GameOverMenu implements GameScene{
     @Override
     public int handleMouseClick(int mx, int my) {
         if (checkInside(mx, my, btnAreas[0])) return 3;
-        return 6;
+        return -1;
     }
 
     public boolean checkInside(int mx, int my,int[] area){

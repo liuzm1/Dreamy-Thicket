@@ -36,7 +36,7 @@ public class StartMenu implements GameScene{
         if(checkInside(mx, my, btnAreas[1])) return 3;  //点击双人模式，跳转 选择关卡
         if(checkInside(mx, my, btnAreas[2])) return 6;  //点击HELP，跳转 HELP
         if(checkInside(mx, my, btnAreas[3])) System.exit(0); //点击 退出，退出
-        return 0;
+        return -1;
     }
 
 

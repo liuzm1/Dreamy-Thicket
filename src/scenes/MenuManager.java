@@ -1,6 +1,7 @@
 package scenes;
 import core.GameEngine;
 import maps.MapManager;
+import ui.InGameUI;
 
 public class MenuManager {
     public StartMenu startMenu;
@@ -9,6 +10,7 @@ public class MenuManager {
     public PauseMenu pauseMenu;
     public HelpMenu helpMenu;
     public GameOverMenu gameOverMenu;
+    public InGameUI inGameUI;
 
 
     public static final int STATE_START_MENU = 0;
@@ -18,6 +20,7 @@ public class MenuManager {
     public static int STATE_VICTOR = 4;
     public static int STATE_GAME_OVER = 5;
     public static int STATE_HELP = 6;
+    public static int STATE_INGAMEUI = 7;
 
     private GameScene activeScene;
 
@@ -28,6 +31,7 @@ public class MenuManager {
         pauseMenu = new PauseMenu(engine);
         helpMenu = new HelpMenu(engine);
         gameOverMenu = new GameOverMenu(engine);
+        inGameUI  = new InGameUI(engine);
 
         //初始状态指向主菜单
         activeScene = startMenu;
@@ -36,24 +40,29 @@ public class MenuManager {
     public void switchScene(int state) {
         switch(state) {
             case 0: activeScene = startMenu; break;
-            case 1: activeScene = null; break;
+            case 1: activeScene = inGameUI; break;
             case 2: activeScene = pauseMenu; break;
             case 3: activeScene = levelSelectMenu; break;
             case 4: activeScene = victoryMenu; break;
             case 5: activeScene = gameOverMenu; break;
             case 6: activeScene = helpMenu; break;
-
         }
     }
 
     public void drawActiveMenu(GameEngine engine, int currentState, MapManager mapManager) {
-        // 1. 如果是暂停、游戏、胜利、失败，先画地基（地图）
+        // 1. 画地基
         if (currentState == STATE_PLAYING || currentState == STATE_PAUSED ||
                 currentState == STATE_VICTOR || currentState == STATE_GAME_OVER) {
             mapManager.draw(engine);
         }
 
-        // 2. 再画菜单（UI）。因为 activeScene.draw 在后面，它会覆盖在地图上
+        // 2. 特殊处理：如果是游戏中，额外画一层 InGameUI
+        if (currentState == STATE_PLAYING) {
+            inGameUI.draw(engine); // 这样它就不用非得挤在 activeScene 变量里了
+        }
+
+
+        // 2. 再画菜单。因为 activeScene.draw 在后面，它会覆盖在地图上
         if (activeScene != null) {
             activeScene.draw(engine);
         }

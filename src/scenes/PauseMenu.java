@@ -25,7 +25,7 @@ public class PauseMenu implements GameScene{
     @Override
     public int handleMouseClick(int mx, int my){
         if(checkInside(mx, my, btnAreas[0])) return 1;
-        return 2;
+        return -1;
     }
 
     //判断鼠标位置

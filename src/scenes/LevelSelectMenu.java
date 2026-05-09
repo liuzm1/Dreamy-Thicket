@@ -32,13 +32,13 @@ public class LevelSelectMenu implements GameScene{
 
     @Override
     public int handleMouseClick(int mx, int my){
-        if(checkInside(mx, my, btnAreas[0])) return 1;
-        if(checkInside(mx, my, btnAreas[1])) return 1;
-        if(checkInside(mx, my, btnAreas[2])) return 1;
+        if(checkInside(mx, my, btnAreas[0])) return 101;
+        if(checkInside(mx, my, btnAreas[1])) return 102;
+        if(checkInside(mx, my, btnAreas[2])) return 103;
         if(checkInside(mx, my, btnAreas[6])) return 0;
-        //这里设计到一个问题，是点击关卡直接进去游戏，还是点击关卡后选择后，再点击开始游戏
-        //if(checkInside(mx, my, btnAreas[7])) return 1;
-        return 3;
+        //点击开始游戏的按钮直接从第一关开始
+        if(checkInside(mx, my, btnAreas[7])) return 101;
+        return -1;
     }
 
     public boolean checkInside(int mx, int my,int[] area){

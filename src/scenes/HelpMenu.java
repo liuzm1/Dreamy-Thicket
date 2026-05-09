@@ -38,7 +38,7 @@ public class HelpMenu implements GameScene{
     @Override
     public int handleMouseClick(int mx, int my) {
         if (checkInside(mx, my, btnAreas[0])) return 0;
-        return 6;
+        return -1;
     }
 
 

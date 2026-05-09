@@ -148,7 +148,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
             @Override
             public void run() {
                 // Create the window
-                setupWindow(500,500);
+                setupWindow(640,640);
             }
         });
     }

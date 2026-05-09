@@ -1,15 +1,35 @@
+//修改人： 刘子墨
+//功能：游戏结束菜单，展示，按钮区域，鼠标悬浮在按钮上出现小刺猬图标package scenes;
 package scenes;
-
 import core.GameEngine;
+import scenes.DrawSelector;
 import java.awt.Image;
-
+//修改人： 刘子墨
+//功能：游戏结束菜单，展示，按钮区域，鼠标悬浮在按钮上出现小刺猬图标
 public class StartMenu {
-    private final Image startBackground;
+    private final Image startMenu_Img;
+    //定义按钮区域
+    private int[][] btnAreas = {
+            {15, 578, 154, 55}, // 0: 单人模式 [x, y, w, h]
+            {186, 578, 154, 55}, // 1: 双人模式
+            {338, 578, 154, 55}, // 2: 帮助
+            {490, 578, 154, 55}  // 3: 退出
+    };
+
     public StartMenu(GameEngine engine) {
-        startBackground = engine.loadImage("resource/sprites/start_bg.png");
+        startMenu_Img = engine.loadImage("resource/sprites/menus/start_bg.png");
     }
+
     public void draw(GameEngine engine){
         engine.changeColor(255,204,255);
-        engine.drawImage(startBackground,0,0,640,640);
+        engine.drawImage(startMenu_Img,0,0,640,640);
+
+        //定义按钮区域
+        DrawSelector ds = new DrawSelector(engine);
+        ds.draw(engine,btnAreas);
+
     }
+
+
+
 }

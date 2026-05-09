@@ -4,8 +4,9 @@ package scenes;
 import core.GameEngine;
 
 import java.awt.*;
+import java.awt.event.ActionListener;
 
-public class HelpMenu {
+public class HelpMenu implements GameScene{
     public final Image helpMenu_Img;
     public final Image helpTitle_broad;
     public final Image helpContent_broad;
@@ -17,6 +18,8 @@ public class HelpMenu {
         helpTitle_broad = engine.loadImage("resource/sprites/menus/help_board.png");
         helpContent_broad = engine.loadImage("resource/sprites/menus/help_content.png");
     }
+
+    @Override
     public void draw(GameEngine engine) {
         engine.drawImage(helpMenu_Img, 0, 0,640,640);
         engine.changeColor(255, 0, 0);
@@ -25,13 +28,23 @@ public class HelpMenu {
         engine.changeColor(60, 40, 20);
         engine.drawBoldText(270, 610, "BACK", "Monospaced", 40);
         engine.drawBoldText(270, 125, "HELP", "Monospaced", 40);
-
         engine.drawImage(helpContent_broad, 125, 140,390,358);
 
 
         //定义按钮区域
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
-
     }
+    @Override
+    public int handleMouseClick(int mx, int my) {
+        if (checkInside(mx, my, btnAreas[0])) return 0;
+        return 6;
+    }
+
+
+    public boolean checkInside(int mx, int my,int[] area){
+        return mx >= area[0] && mx <= area[0] + area[2] &&
+                my >= area[1] && my <= area[1] + area[3];
+    }
+
 }

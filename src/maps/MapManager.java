@@ -1,4 +1,4 @@
-package scenes;
+package maps;
 
 import java.awt.Image;
 import java.io.File;

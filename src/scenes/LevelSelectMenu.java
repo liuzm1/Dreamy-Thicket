@@ -4,13 +4,13 @@ package scenes;
 import core.GameEngine;
 import java.awt.Image;
 
-public class LevelSelectMenu {
+public class LevelSelectMenu implements GameScene{
     private final Image levelSelectMenu_Img;
     public LevelSelectMenu(GameEngine engine) {
         levelSelectMenu_Img = engine.loadImage("resource/sprites/menus/LevelSelect_bg.png");
     }
 
-    private int[][] btnAreas = {
+    private final int[][] btnAreas = {
             {64,246,84,84},  //关卡1
             {210,246,84,84}, //关卡2
             {350,246,84,84}, //关卡3
@@ -20,11 +20,29 @@ public class LevelSelectMenu {
             {14,576,154,54}, //返回菜单
             {490,576,134,64}  //开始游戏
     };
+
+    @Override
     public void draw(GameEngine engine){
         engine.changeColor(255,204,255);
         engine.drawImage(levelSelectMenu_Img,0,0,640,640);
         //定义按钮区域
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
+    }
+
+    @Override
+    public int handleMouseClick(int mx, int my){
+        if(checkInside(mx, my, btnAreas[0])) return 1;
+        if(checkInside(mx, my, btnAreas[1])) return 1;
+        if(checkInside(mx, my, btnAreas[2])) return 1;
+        if(checkInside(mx, my, btnAreas[6])) return 0;
+        //这里设计到一个问题，是点击关卡直接进去游戏，还是点击关卡后选择后，再点击开始游戏
+        //if(checkInside(mx, my, btnAreas[7])) return 1;
+        return 3;
+    }
+
+    public boolean checkInside(int mx, int my,int[] area){
+        return mx >= area[0] && mx <= area[0] + area[2] &&
+                my >= area[1] && my <= area[1] + area[3];
     }
 }

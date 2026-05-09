@@ -1,6 +1,6 @@
 package scenes;
 import core.GameEngine;
-import scenes.*;
+import maps.MapManager;
 
 public class MenuManager {
     public StartMenu startMenu;
@@ -11,13 +11,15 @@ public class MenuManager {
     public GameOverMenu gameOverMenu;
 
 
-    private final int STATE_START_MENU = 0;
-    private final int STATE_PLAYING = 1;
-    private final int STATE_PAUSED = 2;
-    private final int STATE_LEVEL_SELECT = 3;
-    private final int STATE_VICTOR = 4;
-    private final int STATE_GAME_OVER = 5;
-    private final int STATE_HELP = 6;
+    public static final int STATE_START_MENU = 0;
+    public static int STATE_PLAYING = 1;
+    public static int STATE_PAUSED = 2;
+    public static int STATE_LEVEL_SELECT = 3;
+    public static int STATE_VICTOR = 4;
+    public static int STATE_GAME_OVER = 5;
+    public static int STATE_HELP = 6;
+
+    private GameScene activeScene;
 
     public MenuManager(GameEngine engine) {
         startMenu = new StartMenu(engine);
@@ -26,35 +28,34 @@ public class MenuManager {
         pauseMenu = new PauseMenu(engine);
         helpMenu = new HelpMenu(engine);
         gameOverMenu = new GameOverMenu(engine);
+
+        //初始状态指向主菜单
+        activeScene = startMenu;
+    }
+
+    public void switchScene(int state) {
+        switch(state) {
+            case 0: activeScene = startMenu; break;
+            case 1: activeScene = null; break;
+            case 2: activeScene = pauseMenu; break;
+            case 3: activeScene = levelSelectMenu; break;
+            case 4: activeScene = victoryMenu; break;
+            case 5: activeScene = gameOverMenu; break;
+            case 6: activeScene = helpMenu; break;
+
+        }
     }
 
     public void drawActiveMenu(GameEngine engine, int currentState, MapManager mapManager) {
-
-        // --- 第一层：地基 ---
-        if (currentState == STATE_PLAYING || currentState == STATE_PAUSED) {
+        // 1. 如果是暂停、游戏、胜利、失败，先画地基（地图）
+        if (currentState == STATE_PLAYING || currentState == STATE_PAUSED ||
+                currentState == STATE_VICTOR || currentState == STATE_GAME_OVER) {
             mapManager.draw(engine);
-            // 这里以后可以画：player.draw(engine);
         }
 
-        switch (currentState) {
-            case STATE_START_MENU: // STATE_START_MENU
-                startMenu.draw(engine);
-                break;
-            case STATE_LEVEL_SELECT: // STATE_LEVEL_SELECT
-                levelSelectMenu.draw(engine);
-                break;
-            case STATE_PAUSED: // STATE_PAUSED
-                pauseMenu.draw(engine);
-                break;
-            case STATE_VICTOR: // STATE_VICTORY
-                victoryMenu.draw(engine);
-                break;
-            case STATE_GAME_OVER: // STATE_GAMEOVER
-                gameOverMenu.draw(engine);
-                break;
-            case STATE_HELP: // STATE_HELP
-                helpMenu.draw(engine);
-                break;
+        // 2. 再画菜单（UI）。因为 activeScene.draw 在后面，它会覆盖在地图上
+        if (activeScene != null) {
+            activeScene.draw(engine);
         }
     }
 

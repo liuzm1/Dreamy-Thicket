@@ -1,8 +1,8 @@
 package core;
 //游戏主类
-import scenes.MapManager;
+import scenes.GameScene;
+import maps.MapManager;
 import scenes.MenuManager;
-import scenes.VictoryMenu;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -54,15 +54,19 @@ public class GameInstance extends GameEngine {
 
     @Override
     public void paintComponent() {
-        //把背景涂黑，防止闪烁
-        //mapManager.draw(this);
         //先绘制一个测试网格
        drawDebugGrid();
-       //为了测试
-       // menuManager.pauseMenu.draw(this);
-        // 把当前状态告诉menuManager，MenuManager 你看着画
-        menuManager.drawActiveMenu(this, STATE_HELP, mapManager);
 
+        // 把当前状态告诉menuManager，MenuManager看着画
+        menuManager.drawActiveMenu(this, currentState, mapManager);
+
+        // 2.画人物—— 让在这里写代码，别去动MenuManager
+        // player.draw(this);
+
+
+        //--------------------
+        //鼠标显示坐标
+        //---------------------
         changeColor(Color.YELLOW);
         // 使用引擎自带的 drawText，坐标设为 (10, 30) 避免被标题栏遮挡
         drawText(10, 30, "X: " + mouseX + "  Y: " + mouseY, "Arial", 18);
@@ -92,6 +96,36 @@ public class GameInstance extends GameEngine {
     public void mouseDragged(MouseEvent e) {
         mouseX = e.getX();
         mouseY = e.getY();
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
+
+        //获取点击时正在的页面
+        GameScene currentScene = switch (currentState) {
+            case 0 -> menuManager.startMenu;
+            case 2 -> menuManager.pauseMenu;
+            case 3 -> menuManager.levelSelectMenu;
+            case 4 -> menuManager.victoryMenu;
+            case 5 -> menuManager.gameOverMenu;
+            case 6 -> menuManager.helpMenu;
+            default -> null;
+            //通过MenuManager拿到对应的实例
+        };
+
+        //如果当前场景存在，就把点击交给它处理
+        if (currentScene != null) {
+            //在点击时候的这个页面中，把鼠标X，Y的位置传进下面这个里
+            //比如现在正在start页面，接着就调出start页面的判断按钮的类，进行判断
+            int nextState = currentScene.handleMouseClick(mouseX, mouseY);
+            //如果状态发生了变化，鼠标点击了，
+            if (nextState != -1 && nextState != currentState) {
+                currentState = nextState;
+                menuManager.switchScene(nextState);
+    }
+    }
     }
 
     // 补充两个获取方法，供菜单判断使用

@@ -7,23 +7,26 @@ import core.GameEngine;
 
 public class MapManager {
     // 静态常量
-    private final int GRID_COUNT = 16;
-    private final int TILE_SIZE = 40;
+    public final int GRID_COUNT = 16;
+    public final int TILE_SIZE = 40;
 
     // 数据与资源
-    private final int[][] mapData;
+    protected int[][] mapData;
+
     private final Image grassImg;
-    private final Image stoneImg;
+    private final Image stoneImg;  //石头障碍物 == 1
     private final Image flowerImg;
     private final Image mushroomImg;
+    private final Image vine; //藤蔓，不能走，但可以消除： 5
 
     public MapManager(GameEngine engine) {
         mapData = new int[GRID_COUNT][GRID_COUNT];
         // 在这里加载资源
-        grassImg = engine.loadImage("resource/sprites/maps/Grass1.png");
-        stoneImg = engine.loadImage("resource/sprites/maps/Stone.png");
+        grassImg = engine.loadImage("resource/sprites/maps/grass1.png");
+        stoneImg = engine.loadImage("resource/sprites/maps/stone.png");
         flowerImg = engine.loadImage("resource/sprites/maps/flowers_bg.png");
         mushroomImg = engine.loadImage("resource/sprites/maps/mushroon_bg.png");
+        vine = engine.loadImage("resource/sprites/maps/vine.png");
     }
 
     // 封装读取逻辑
@@ -63,9 +66,8 @@ public class MapManager {
         }
     }
 
-    // 为后续碰撞检测预留的“窗口”
-    public boolean isSolid(int col, int row) {
-        if (col < 0 || col >= GRID_COUNT || row < 0 || row >= GRID_COUNT) return true;
-        return mapData[row][col] == 1; // 如果是石头，返回 true
+    public int[][] getMapData() {
+        return mapData;
     }
+
 }

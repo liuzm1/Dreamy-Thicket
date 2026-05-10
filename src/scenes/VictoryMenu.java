@@ -16,7 +16,7 @@ public class VictoryMenu implements GameScene{
     };
 
     public VictoryMenu(GameEngine engine) {
-        victoryMenu_Img =  engine.loadImage("resource/sprites/menus/victory_bg.png");
+        victoryMenu_Img =  engine.loadImage("resource/sprites/menus/Victory_bg.png");
         home_btn = engine.loadImage("resource/sprites/menus/inVictoryMenuhome_btn.png");
     }
 

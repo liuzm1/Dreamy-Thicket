@@ -1,5 +1,7 @@
 package core;
 //游戏主类
+import entities.SoloPlayer;
+import maps.CollisionCheck;
 import scenes.GameScene;
 import maps.MapManager;
 import scenes.MenuManager;
@@ -10,32 +12,22 @@ import java.awt.event.MouseEvent;
 public class GameInstance extends GameEngine {
     //定义窗口常量
     private final int WINDOW_SIZE = 640;
-
-    //-------------------------------------------------------
-    // 定义游戏状态常量
-    //-------------------------------------------------------
-    private final int STATE_START_MENU = 0;
-    private final int STATE_PLAYING = 1;
-    private final int STATE_PAUSED = 2;
-    private final int STATE_LEVEL_SELECT = 3;
-    private final int STATE_VICTOR = 4;
-    private final int STATE_GAME_OVER = 5;
-    private final int STATE_HELP = 6;
-
-    private int currentState = STATE_START_MENU; // 默认在主菜单
-
     //-------------------------------------------------------
     //游戏关卡地图管理
-    //-------------------------------------------------------
     private final MapManager mapManager = new MapManager(this);
 
     //-------------------------------------------------------
     //游戏菜单管理
-    //-------------------------------------------------------
     private final MenuManager menuManager = new MenuManager(this);
+
+    private SoloPlayer player1;
+    private CollisionCheck collisionCheck;
+    // 仿照飞船案例：记录按键状态
+    private boolean left, right, up, down;
 
 
     public GameInstance() {
+        mapManager.loadLevel("resource/map1.txt");
     }
 
     //-------------------------------------------------------
@@ -43,44 +35,45 @@ public class GameInstance extends GameEngine {
     //-------------------------------------------------------
     @Override
     public void init() {
-        //测试地图是否能正常加载
-        //mapManager.loadLevel("resource/map1.txt");
+        collisionCheck = new maps.CollisionCheck(mapManager);
+        player1 = new SoloPlayer(this, 2, 2); // 假设从 (2,2) 开始
 
-        //测试
-        //currentState = STATE_PLAYING;
-        //menuManager.switchScene(STATE_PLAYING);
+        // 初始状态下按键都是 false
+        left = right = up = down = false;
 
     }
 
+    // 修改 update 逻辑，让按键直接生效
     @Override
     public void update(double dt) {
-        //  只有当状态不是“暂停”时，才更新游戏逻辑
-        //    if (currentState != STATE_PAUSED) {
-        //        // 执行：角色移动、碰撞检测、计时器等
-        //        // player.move();
-        //        // enemy.update();
-        //    }
-        // 如果是暂停状态，update 里的逻辑会被跳过，小人就“定”住了
+        if (currentState == STATE_PLAYING && player1 != null) {
+            player1.update(dt);
+            // 直接根据按键状态调用 move
+            if (up)    { player1.move(0, -1, collisionCheck); up = false; }
+            if (down)  { player1.move(0, 1, collisionCheck);  down = false; }
+            if (left)  { player1.move(-1, 0, collisionCheck); left = false; }
+            if (right) { player1.move(1, 0, collisionCheck);  right = false; }
+        }
     }
+
+
 
     @Override
     public void paintComponent() {
-        //先绘制一个测试网格
-       drawDebugGrid();
+        changeColor(Color.BLACK);
+        drawSolidRectangle(0, 0, 640, 640);
 
-        // 把当前状态告诉menuManager，MenuManager看着画
+        // 2. 先画菜单和地图
+        // 这里的 drawActiveMenu 内部肯定有清屏或者画大背景的逻辑
         menuManager.drawActiveMenu(this, currentState, mapManager);
 
-        // 2.画人物—— 让在这里写代码，别去动MenuManager
-        // player.draw(this);
-
-
-        //--------------------
-        //鼠标显示坐标
-        //---------------------
-        changeColor(Color.YELLOW);
-        // 使用引擎自带的 drawText，坐标设为 (10, 30) 避免被标题栏遮挡
-        drawText(10, 30, "X: " + mouseX + "  Y: " + mouseY, "Arial", 18);
+        // 3. 【重点】在菜单画完之后，再画玩家
+        // 只有在游戏中才画
+        if (currentState == STATE_PLAYING && player1 != null) {
+            // 这里先用你那个“绝对看得见”的蓝色方块试试
+            // 如果蓝色方块动了，再换成 player1.draw(this);
+            player1.draw(this);
+        }
 
     }
 
@@ -96,6 +89,7 @@ public class GameInstance extends GameEngine {
     // 在 GameInstance 类内部添加
     private int mouseX, mouseY;
 
+
     // 覆写鼠标移动方法，实时更新坐标变量
     @Override
     public void mouseMoved(MouseEvent e) {
@@ -109,6 +103,18 @@ public class GameInstance extends GameEngine {
         mouseY = e.getY();
     }
 
+
+    //-------------------------------------------------------
+    // 定义游戏状态常量
+    //-------------------------------------------------------
+    private final int STATE_START_MENU = 0;
+    private final int STATE_PLAYING = 1;
+    private final int STATE_PAUSED = 2;
+    private final int STATE_LEVEL_SELECT = 3;
+    private final int STATE_VICTOR = 4;
+    private final int STATE_GAME_OVER = 5;
+    private final int STATE_HELP = 6;
+    private int currentState = STATE_START_MENU; // 默认在主菜单
     @Override
     public void mousePressed(MouseEvent e) {
         int mx = e.getX();
@@ -148,10 +154,8 @@ public class GameInstance extends GameEngine {
 
                 // --- B. 处理游戏内“重新开始” (点完还是当前状态 1) ---
                 else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
-                    // 假设默认重启第一关，或者你可以定义一个变量记住当前是第几关
                     int levelNum = nextState - 100;
                     mapManager.loadLevel("resource/map" + levelNum + ".txt");
-                    // 如果有玩家对象，记得重置位置：player.reset();
                 }
                 // --- C. 处理普通页面切换 ---
                 else if (nextState != currentState) {
@@ -169,6 +173,25 @@ public class GameInstance extends GameEngine {
 
     public int getMouseY() {
         return mouseY;
+    }
+
+
+    @Override
+    public void keyPressed(java.awt.event.KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == java.awt.event.KeyEvent.VK_W) up = true;
+        if (key == java.awt.event.KeyEvent.VK_S) down = true;
+        if (key == java.awt.event.KeyEvent.VK_A) left = true;
+        if (key == java.awt.event.KeyEvent.VK_D) right = true;
+    }
+
+    @Override
+    public void keyReleased(java.awt.event.KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == java.awt.event.KeyEvent.VK_W) up = false;
+        if (key == java.awt.event.KeyEvent.VK_S) down = false;
+        if (key == java.awt.event.KeyEvent.VK_A) left = false;
+        if (key == java.awt.event.KeyEvent.VK_D) right = false;
     }
 
 

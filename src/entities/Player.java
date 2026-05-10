@@ -102,6 +102,23 @@ public abstract class Player {
         }
     }
 
+    //重置逻辑
+    public void reset(int startCol, int startRow) {
+        // 重置逻辑位置
+        this.col = startCol;
+        this.row = startRow;
+
+        // 重置物理位置
+        this.x = startCol * TILE_SIZE;
+        this.y = startRow * TILE_SIZE;
+
+        // 重置状态
+        this.direction = DIR_DOWN;
+        this.hp = 3;
+        this.isMoving = false;
+        this.animationFrame = 0;
+    }
+
         //更改人物朝向
         protected void updateDirection ( int dx, int dy){
             if (dx > 0) direction = DIR_RIGHT;

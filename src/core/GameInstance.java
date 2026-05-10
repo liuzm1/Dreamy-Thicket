@@ -120,49 +120,66 @@ public class GameInstance extends GameEngine {
         int mx = e.getX();
         int my = e.getY();
 
-        // 1. 获取当前活跃的场景对象
-        GameScene currentScene = null;
-        if (currentState == STATE_PLAYING) {
-            currentScene = menuManager.inGameUI;
-        } else {
-            // 根据当前状态从 menuManager 拿到对应的菜单实例
-            switch (currentState) {
-                case STATE_START_MENU:   currentScene = menuManager.startMenu; break;
-                case STATE_PAUSED:       currentScene = menuManager.pauseMenu; break;
-                case STATE_LEVEL_SELECT: currentScene = menuManager.levelSelectMenu; break;
-                case STATE_VICTOR:       currentScene = menuManager.victoryMenu; break;
-                case STATE_GAME_OVER:    currentScene = menuManager.gameOverMenu; break;
-                case STATE_HELP:         currentScene = menuManager.helpMenu; break;
-            }
+        // 1. 根据当前状态找到对应的菜单界面
+        GameScene currentScene = (currentState == STATE_PLAYING) ?
+                menuManager.inGameUI : getActiveMenu();
+
+        if (currentScene == null) return;
+
+        // 2. 获取点击后的下一个状态
+        int nextState = currentScene.handleMouseClick(mx, my);
+        if (nextState == -1) return; // 无效点击直接返回
+
+        // 3. 分支处理
+
+        // --- A. 进入新关卡 (从关卡选择界面点进来) ---
+        if (nextState >= 100) {
+            int levelNum = nextState - 100;
+            mapManager.loadLevel("resource/map" + levelNum + ".txt");
+
+            // 关键：重置玩家
+            if (player1 != null) player1.reset(2, 2);
+
+            currentState = STATE_PLAYING;
+            menuManager.switchScene(STATE_PLAYING);
         }
 
-        // 2. 统一处理点击逻辑
-        if (currentScene != null) {
-            int nextState = currentScene.handleMouseClick(mx, my);
+        // --- B. 重新开始当前关卡 (在游戏中点击了重置) ---
+        else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
+            // 这里可以直接重新 reset 玩家，地图可以根据需要重载或不载
+            if (player1 != null) player1.reset(2, 2);
+            System.out.println("关卡已重置");
+        }
 
-            // 如果点击有效（不为 -1）
-            if (nextState != -1) {
+        // --- C. 从菜单返回游戏 (真正的 Resume) ---
+        else if (nextState == STATE_PLAYING && currentState != STATE_PLAYING) {
+            // 这种情况下通常不 reset 玩家，让他接着玩
+            currentState = STATE_PLAYING;
+            menuManager.switchScene(STATE_PLAYING);
+        }
 
-                // --- A. 处理关卡跳转逻辑 (nextState >= 100) ---
-                if (nextState >= 100) {
-                    int levelNum = nextState - 100;
-                    mapManager.loadLevel("resource/map" + levelNum + ".txt");
-
-                    currentState = STATE_PLAYING; // 强制进入游戏状态
-                    menuManager.switchScene(STATE_PLAYING);
-                }
-
-                // --- B. 处理游戏内“重新开始” (点完还是当前状态 1) ---
-                else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
-                    int levelNum = nextState - 100;
-                    mapManager.loadLevel("resource/map" + levelNum + ".txt");
-                }
-                // --- C. 处理普通页面切换 ---
-                else if (nextState != currentState) {
-                    currentState = nextState;
-                    menuManager.switchScene(nextState);
-                }
+        // --- D. 普通页面切换 (主菜单、帮助、暂停等) ---
+        else if (nextState != currentState) {
+            // 如果是从游戏切回主菜单，也可以考虑在这里顺便 reset 一下
+            if (nextState == STATE_START_MENU && player1 != null) {
+                player1.reset(2, 2);
             }
+
+            currentState = nextState;
+            menuManager.switchScene(nextState);
+        }
+    }
+
+    // 辅助方法：把原来的 switch 提出来，让主方法变干净
+    private GameScene getActiveMenu() {
+        switch (currentState) {
+            case STATE_START_MENU:   return menuManager.startMenu;
+            case STATE_PAUSED:       return menuManager.pauseMenu;
+            case STATE_LEVEL_SELECT: return menuManager.levelSelectMenu;
+            case STATE_VICTOR:       return menuManager.victoryMenu;
+            case STATE_GAME_OVER:    return menuManager.gameOverMenu;
+            case STATE_HELP:         return menuManager.helpMenu;
+            default: return null;
         }
     }
 

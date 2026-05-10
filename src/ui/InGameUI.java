@@ -19,7 +19,7 @@ public class InGameUI implements GameScene {
     public InGameUI(GameEngine engine) {
         inGameHome_btn = engine.loadImage("resource/sprites/menus/inGamehome_btn1.png");
         inGamePause_btn = engine.loadImage("resource/sprites/menus/inGamepause_btn.png");
-        inGameResume_btn =  engine.loadImage("resource/sprites/menus/inGameresume_btn.png");
+        inGameResume_btn =  engine.loadImage("resource/sprites/menus/inGameReset_btn.png");
     }
 
     @Override

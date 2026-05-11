@@ -9,6 +9,7 @@ public class InGameUI implements GameScene {
     private final Image inGameHome_btn;
     private final Image inGamePause_btn;
     private final Image inGameResume_btn;
+    private final Image btn_bg;
 
     private final int[][] btnAreas = {
             {590, 0, 45, 45},  //inGameHome_btn
@@ -20,11 +21,15 @@ public class InGameUI implements GameScene {
         inGameHome_btn = engine.loadImage("resource/sprites/menus/inGamehome_btn1.png");
         inGamePause_btn = engine.loadImage("resource/sprites/menus/inGamepause_btn.png");
         inGameResume_btn =  engine.loadImage("resource/sprites/menus/inGameReset_btn.png");
+        btn_bg = engine.loadImage("resource/sprites/menus/btn_bg.png");
     }
 
     @Override
     public void draw(GameEngine engine){
         engine.changeColor(0,0,0);
+        engine.drawImage(btn_bg,590,0,45,45);
+        engine.drawImage(btn_bg,540,0,45,45);
+        engine.drawImage(btn_bg,490,0,45,45);
         engine.drawImage(inGameHome_btn,590,0,45,45);
         engine.drawImage(inGamePause_btn,540,0,45,45);
         engine.drawImage(inGameResume_btn,490,0,45,45);

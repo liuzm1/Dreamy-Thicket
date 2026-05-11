@@ -4,7 +4,6 @@ package scenes;
 import core.GameEngine;
 import scenes.DrawSelector;
 import java.awt.Image;
-//修改人： 刘子墨
 //功能：游戏结束菜单，展示，按钮区域，鼠标悬浮在按钮上出现小刺猬图标
 public class StartMenu implements GameScene{
     private final Image startMenu_Img;

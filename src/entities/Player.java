@@ -125,7 +125,7 @@ public abstract class Player {
 
         Image currentFrame = engine.subImage(spriteSheet, sx, sy, FRAME_SIZE, FRAME_SIZE);
         if (currentFrame != null) {
-            engine.drawImage(currentFrame, x, y, 60, 60);
+            engine.drawImage(currentFrame, x-25, y-25, 90, 90);
         }
     }
 

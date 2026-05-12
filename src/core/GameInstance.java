@@ -36,7 +36,7 @@ public class GameInstance extends GameEngine {
     @Override
     public void init() {
         collisionCheck = new maps.CollisionCheck(mapManager);
-        player1 = new SoloPlayer(this, 2, 2); // 假设从 (2,2) 开始
+        player1 = new SoloPlayer(this, 5, 5); // 从 (5,5) 开始
 
         // 初始状态下按键都是 false
         left = right = up = down = false;
@@ -70,9 +70,12 @@ public class GameInstance extends GameEngine {
         // 3. 【重点】在菜单画完之后，再画玩家
         // 只有在游戏中才画
         if (currentState == STATE_PLAYING && player1 != null) {
-            // 这里先用你那个“绝对看得见”的蓝色方块试试
-            // 如果蓝色方块动了，再换成 player1.draw(this);
             player1.draw(this);
+            drawDebugGrid();
+            int mx = getMouseX();
+            int my = getMouseY();
+            changeColor(Color.YELLOW);
+            drawBoldText(10, 40, "(" + (mx/40) + " , " + (my/40 ) + ")");
         }
 
     }
@@ -138,7 +141,7 @@ public class GameInstance extends GameEngine {
             mapManager.loadLevel("resource/map" + levelNum + ".txt");
 
             // 关键：重置玩家
-            if (player1 != null) player1.reset(2, 2);
+            if (player1 != null) player1.reset(5, 5);
 
             currentState = STATE_PLAYING;
             menuManager.switchScene(STATE_PLAYING);
@@ -147,7 +150,7 @@ public class GameInstance extends GameEngine {
         // --- B. 重新开始当前关卡 (在游戏中点击了重置) ---
         else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
             // 这里可以直接重新 reset 玩家，地图可以根据需要重载或不载
-            if (player1 != null) player1.reset(2, 2);
+            if (player1 != null) player1.reset(5, 5);
             System.out.println("关卡已重置");
         }
 
@@ -162,7 +165,7 @@ public class GameInstance extends GameEngine {
         else if (nextState != currentState) {
             // 如果是从游戏切回主菜单，也可以考虑在这里顺便 reset 一下
             if (nextState == STATE_START_MENU && player1 != null) {
-                player1.reset(2, 2);
+                player1.reset(5, 5);
             }
 
             currentState = nextState;

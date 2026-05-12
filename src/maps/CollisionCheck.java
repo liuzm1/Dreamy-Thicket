@@ -18,7 +18,7 @@ public class CollisionCheck {
         int tileType = mapManager.getMapData()[row][col];
 
         // 这里的 1 是石头，5 是藤蔓（藤蔓也挡路）
-        return tileType == 1 || tileType == 5;
+        return tileType == 1 || tileType == 5 ||tileType == 8;
     }
 
     /*

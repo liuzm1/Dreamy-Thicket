@@ -12,6 +12,8 @@ public abstract class Player {
     public int col;
     public int row;
 
+    protected MapManager mapManager;
+
     // 屏幕像素位置（实际绘制用）
     public int x;
     public int y;
@@ -38,11 +40,27 @@ public abstract class Player {
     protected double animationTimer = 0;
     protected final double ANIMATION_SPEED = 0.15; // 调快一点更流畅
 
+    //藤蔓
+    protected boolean isCasting;
+    protected boolean isClearing; // 消除状态开关
+
+    protected double castTimer = 0;
+    protected int remainingVineGrids = 0;
+    protected int currentCastCol, currentCastRow;
+    protected final double GROW_INTERVAL = 0.1; // 每 0.15 秒长一格
+
     // 移动状态
     protected boolean isMoving = false;
 
     // 移动速度（像素/秒）
     protected final int MOVE_SPEED = 200;
+
+    // 你的对手
+    protected Player opponent;
+
+    public void setOpponent(Player opponent) {
+        this.opponent = opponent;
+    }
 
     // 技能
     public abstract void useSkill(MapManager mapManager);
@@ -53,27 +71,34 @@ public abstract class Player {
     }
 
     // ========================== 【移动逻辑】 =========================
-    public void move(int dx, int dy, CollisionCheck collisionCheck) {
+    public void move(int dx, int dy, CollisionCheck collisionCheck,Player otherPlayer) {
+        //锁死
+        if (isCasting || isClearing) return;
+        // 无论是否移动成功，都更新朝向
+        updateDirection(dx, dy);
         // 正在移动时，不接受新移动指令 → 防止连点瞬移
         if (isMoving) return;
 
         int nextCol = this.col + dx;
         int nextRow = this.row + dy;
 
-        if (!collisionCheck.isSolid(nextCol, nextRow)) {
-            // 更新逻辑格子
-            this.col = nextCol;
-            this.row = nextRow;
+        // 1. 检查地图障碍 (墙、藤蔓)
+        if (collisionCheck.isSolid(nextCol, nextRow)) return;
 
-            // 设置新的目标坐标
-            targetX = col * TILE_SIZE;
-            targetY = row * TILE_SIZE;
-
-            isMoving = true; // 开始移动
+        if (otherPlayer != null && otherPlayer.col == nextCol && otherPlayer.row == nextRow) {
+            // 如果格子里有人，撞不动，直接返回
+            return;
         }
+        // 更新逻辑格子
+        this.col = nextCol;
+        this.row = nextRow;
 
-        // 无论是否移动成功，都更新朝向
-        updateDirection(dx, dy);
+        // 设置新的目标坐标
+        targetX = col * TILE_SIZE;
+        targetY = row * TILE_SIZE;
+
+        isMoving = true; // 开始移动
+
     }
 
     // ====================== 【平滑移动 + 动画更新】 ======================
@@ -145,10 +170,13 @@ public abstract class Player {
 
     // 更新方向
     protected void updateDirection(int dx, int dy) {
+        //锁死
+        if (isCasting || isClearing) return;
         if (dx > 0) direction = DIR_RIGHT;
         else if (dx < 0) direction = DIR_LEFT;
         else if (dy > 0) direction = DIR_DOWN;
         else if (dy < 0) direction = DIR_UP;
     }
+
 
 }

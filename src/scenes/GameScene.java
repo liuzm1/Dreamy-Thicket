@@ -9,4 +9,5 @@ public interface GameScene {
     //如果返回 -1 或当前状态值，表示不跳转
     int handleMouseClick(int mx, int my);
 
+
 }

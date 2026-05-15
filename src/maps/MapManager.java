@@ -51,8 +51,6 @@ public class MapManager {
 
     //封装渲染逻辑
     public void draw(GameEngine engine) {
-
-
         engine.drawImage(grassTileImg, 0, 0, 640, 640);
 
         for (int r = 2; r < GRID_COUNT-2; r++) {
@@ -75,6 +73,7 @@ public class MapManager {
     }
 
     public int getTile(int x, int y) {
+        if(x < 0 || y < 0 || x >= 16 || y >= 16) return -1;
         return mapData[y][x];
     }
 

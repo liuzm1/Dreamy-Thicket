@@ -45,7 +45,7 @@ public abstract class Player {
     protected boolean isClearing; // 消除状态开关
 
     protected double castTimer = 0;
-    protected int remainingVineGrids = 0;
+    protected int remainingVineGrids;
     protected int currentCastCol, currentCastRow;
     protected final double GROW_INTERVAL = 0.1; // 每 0.15 秒长一格
 

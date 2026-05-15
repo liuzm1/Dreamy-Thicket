@@ -71,6 +71,11 @@ public class SoloPlayer extends Player {
 
     private void growOneStep() {
         // 1. 检查边界和地形
+        if (currentCastCol < 0 || currentCastCol >= 16
+                || currentCastRow < 0 || currentCastRow >= 16) {
+            isClearing = false;
+            return;
+        }
         // 假设 1 是墙，6 是收集物 (Collectibles)
         int tile = mapManager.getTile(currentCastCol, currentCastRow);
 

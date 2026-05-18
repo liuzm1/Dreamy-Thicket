@@ -7,6 +7,9 @@ import java.awt.Image;
 //功能：游戏结束菜单，展示，按钮区域，鼠标悬浮在按钮上出现小刺猬图标
 public class StartMenu implements GameScene{
     private final Image startMenu_Img;
+
+    boolean isTwoPlayer = false;
+
     //定义按钮区域
     private int[][] btnAreas = {
             {15, 578, 154, 55}, // 0: 单人模式 [x, y, w, h]
@@ -28,16 +31,27 @@ public class StartMenu implements GameScene{
         ds.draw(engine,btnAreas);
     }
 
+
     //按钮交互
     @Override
     public int handleMouseClick(int mx, int my){
-        if(checkInside(mx, my, btnAreas[0])) return 3;  //点击单人模式，跳转 选择关卡
-        if(checkInside(mx, my, btnAreas[1])) return 3;  //点击双人模式，跳转 选择关卡
+        if(checkInside(mx, my, btnAreas[0])) {
+            isTwoPlayer = false;
+            return 3;  //点击单人模式，跳转 选择关卡
+        }
+        if(checkInside(mx, my, btnAreas[1])) {
+            isTwoPlayer = true;
+            return 3;
+        }
+             //点击双人模式，跳转 选择关卡
         if(checkInside(mx, my, btnAreas[2])) return 6;  //点击HELP，跳转 HELP
         if(checkInside(mx, my, btnAreas[3])) System.exit(0); //点击 退出，退出
         return -1;
     }
 
+    public boolean getIsTwoPlayer(){
+        return isTwoPlayer;
+    }
 
     //判断鼠标位置
     private boolean checkInside(int mx, int my, int[] area) {

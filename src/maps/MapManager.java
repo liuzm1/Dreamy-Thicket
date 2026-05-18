@@ -17,6 +17,7 @@ public class MapManager {
     private final Image grassTileImg;
     private final Image stoneImg;  //石头障碍物 == 1
     private final Image vine; //藤蔓，不能走，但可以消除： 5
+    private final Image text;
     //private final Image TEST;
 
     public MapManager(GameEngine engine) {
@@ -27,6 +28,7 @@ public class MapManager {
         grassTileImg = engine.loadImage("resource/sprites/maps/map1.png");//0
         stoneImg = engine.loadImage("resource/sprites/maps/stone.png"); //1
         vine = engine.loadImage("resource/sprites/maps/vine.png");//5
+        text = engine.loadImage("resource/sprites/heart_poision.png");
     }
 
     // 封装读取逻辑
@@ -49,16 +51,12 @@ public class MapManager {
 
     //封装渲染逻辑
     public void draw(GameEngine engine) {
-
-
         engine.drawImage(grassTileImg, 0, 0, 640, 640);
 
         for (int r = 2; r < GRID_COUNT-2; r++) {
             for (int c = 2; c < GRID_COUNT-2; c++) {
                 int px = c * TILE_SIZE;
                 int py = r * TILE_SIZE;
-
-
                 // 绘制层级内容
                 int type = mapData[r][c];
                 //障碍物
@@ -67,10 +65,20 @@ public class MapManager {
             }
         }
 
+
     }
 
     public int[][] getMapData() {
         return mapData;
+    }
+
+    public int getTile(int x, int y) {
+        if(x < 0 || y < 0 || x >= 16 || y >= 16) return -1;
+        return mapData[y][x];
+    }
+
+    public void setTile(int x, int y, int value) {
+        mapData[y][x] = value;
     }
 
 }

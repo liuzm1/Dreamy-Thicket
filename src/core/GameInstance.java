@@ -2,6 +2,7 @@ package core;
 //游戏主类
 import entities.DestroyPlayer;
 import entities.GeneratePlayer;
+import entities.PatrolEnemy;
 import entities.SoloPlayer;
 import maps.CollisionCheck;
 import scenes.GameScene;
@@ -46,9 +47,35 @@ public class GameInstance extends GameEngine {
     //-------------------------------------------------------
     // Enemies
     //-------------------------------------------------------
+    /** 第一关：中间行左右各一只巡逻怪（中间有石头隔开） */
+    private PatrolEnemy[] patrolEnemies;
+    /** 可行走区域中间行 (行 2~13 的中点) */
+    private static final int LEVEL1_PATROL_ROW = 7;
 
+    private void setupEnemiesForLevel(int levelNum) {
+        patrolEnemies = null;
+        if (levelNum == 1) {
+            // 行7：列3~6 左侧通道，列9~12 右侧通道（列7~8为石头）
+            patrolEnemies = new PatrolEnemy[]{
+                    new PatrolEnemy(this, collisionCheck, 4, LEVEL1_PATROL_ROW, -1),
+                    new PatrolEnemy(this, collisionCheck, 10, LEVEL1_PATROL_ROW, 1)
+            };
+        }
+    }
 
+    private void updateEnemies(double dt) {
+        if (patrolEnemies == null) return;
+        for (PatrolEnemy enemy : patrolEnemies) {
+            enemy.update(dt);
+        }
+    }
 
+    private void drawEnemies() {
+        if (patrolEnemies == null) return;
+        for (PatrolEnemy enemy : patrolEnemies) {
+            enemy.draw(this);
+        }
+    }
 
 
 
@@ -87,6 +114,7 @@ public class GameInstance extends GameEngine {
 
         initKeys();
 
+        setupEnemiesForLevel(1);
     }
 
     // 修改 update 逻辑，让按键直接生效
@@ -119,6 +147,7 @@ public class GameInstance extends GameEngine {
                     if (right_P2) generatePlayer.move(1, 0, collisionCheck,destroyPlayer);
                 }
             }
+            updateEnemies(dt);
         }
     }
 
@@ -142,6 +171,7 @@ public class GameInstance extends GameEngine {
                 if(destroyPlayer != null) destroyPlayer.draw(this);
                 if(generatePlayer != null) generatePlayer.draw(this);
             }
+            drawEnemies();
 
             //辅助网格 最后要删除
             drawDebugGrid();
@@ -220,7 +250,7 @@ public class GameInstance extends GameEngine {
                 if(destroyPlayer != null) destroyPlayer.reset(5, 5);
                 if(generatePlayer != null) generatePlayer.reset(11, 11);
             }
-
+            setupEnemiesForLevel(levelNum);
 
             currentState = STATE_PLAYING;
             menuManager.switchScene(STATE_PLAYING);
@@ -241,6 +271,7 @@ public class GameInstance extends GameEngine {
                 if(destroyPlayer != null) destroyPlayer.reset(5, 5);
                 if(generatePlayer != null) generatePlayer.reset(11, 11);
             }
+            setupEnemiesForLevel(levelNum);
         }
 
         // --- C. 从菜单返回游戏 ---

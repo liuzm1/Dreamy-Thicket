@@ -67,7 +67,17 @@ public abstract class Player {
 
     // 受伤
     public void takeDamage() {
-        this.hp--;
+        if (hp > 0) {
+            this.hp--;
+        }
+    }
+
+    public int getHp() {
+        return hp;
+    }
+
+    public boolean isAlive() {
+        return hp > 0;
     }
 
     // ========================== 【移动逻辑】 =========================

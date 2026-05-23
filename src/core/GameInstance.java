@@ -1,8 +1,11 @@
 package core;
 //游戏主类
+import entities.ChaseEnemy;
 import entities.DestroyPlayer;
+import entities.Enemy;
 import entities.GeneratePlayer;
 import entities.PatrolEnemy;
+import entities.Player;
 import entities.SoloPlayer;
 import maps.CollisionCheck;
 import scenes.GameScene;
@@ -49,31 +52,141 @@ public class GameInstance extends GameEngine {
     //-------------------------------------------------------
     /** 第一关：中间行左右各一只巡逻怪（中间有石头隔开） */
     private PatrolEnemy[] patrolEnemies;
+    /** 第二关：追踪最近玩家的敌人 */
+    private ChaseEnemy chaseEnemy;
     /** 可行走区域中间行 (行 2~13 的中点) */
-    private static final int LEVEL1_PATROL_ROW = 7;
+    private static final int MIDDLE_PATROL_ROW = 7;
+    /** 第二、三关中间单只巡逻怪起始列 */
+    private static final int MIDDLE_PATROL_COL = 7;
+
+    private PatrolEnemy createMiddlePatrolEnemy() {
+        return new PatrolEnemy(this, collisionCheck, MIDDLE_PATROL_COL, MIDDLE_PATROL_ROW, 1);
+    }
 
     private void setupEnemiesForLevel(int levelNum) {
         patrolEnemies = null;
+        chaseEnemy = null;
+
         if (levelNum == 1) {
-            // 行7：列3~6 左侧通道，列9~12 右侧通道（列7~8为石头）
             patrolEnemies = new PatrolEnemy[]{
-                    new PatrolEnemy(this, collisionCheck, 4, LEVEL1_PATROL_ROW, -1),
-                    new PatrolEnemy(this, collisionCheck, 10, LEVEL1_PATROL_ROW, 1)
+                    new PatrolEnemy(this, collisionCheck, 4, MIDDLE_PATROL_ROW, -1),
+                    new PatrolEnemy(this, collisionCheck, 10, MIDDLE_PATROL_ROW, 1)
             };
+        } else if (levelNum == 2) {
+            patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
+            chaseEnemy.setPatrolEnemies(patrolEnemies);
+        } else if (levelNum == 3) {
+            patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
         }
     }
 
+    private Player[] getActivePlayers() {
+        if (!isTwoPlayer) {
+            return new Player[]{player1};
+        }
+        return new Player[]{destroyPlayer, generatePlayer};
+    }
+
     private void updateEnemies(double dt) {
-        if (patrolEnemies == null) return;
-        for (PatrolEnemy enemy : patrolEnemies) {
-            enemy.update(dt);
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                enemy.update(dt);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.setPatrolEnemies(patrolEnemies);
+            chaseEnemy.update(dt, getActivePlayers());
         }
     }
 
     private void drawEnemies() {
-        if (patrolEnemies == null) return;
-        for (PatrolEnemy enemy : patrolEnemies) {
-            enemy.draw(this);
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                enemy.draw(this);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.draw(this);
+        }
+    }
+
+    private boolean anyEnemyOnCooldown() {
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null && enemy.isOnCooldown()) return true;
+            }
+        }
+        return chaseEnemy != null && chaseEnemy.isOnCooldown();
+    }
+
+    private void startAllEnemiesCooldown() {
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null) enemy.startCooldown();
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.startCooldown();
+        }
+    }
+
+    /** 玩家与敌人同格则减命，并触发全体敌人 9→0 倒计时 */
+    private void checkEnemyPlayerCollisions() {
+        if (anyEnemyOnCooldown()) return;
+
+        for (Player player : getActivePlayers()) {
+            if (player == null || !player.isAlive()) continue;
+
+            if (patrolEnemies != null) {
+                for (PatrolEnemy enemy : patrolEnemies) {
+                    if (enemy != null && isSameGrid(enemy, player)) {
+                        onPlayerHitEnemy(player);
+                        return;
+                    }
+                }
+            }
+            if (chaseEnemy != null && isSameGrid(chaseEnemy, player)) {
+                onPlayerHitEnemy(player);
+                return;
+            }
+        }
+    }
+
+    private boolean isSameGrid(Enemy enemy, Player player) {
+        return enemy.col == player.col && enemy.row == player.row;
+    }
+
+    private void onPlayerHitEnemy(Player player) {
+        player.takeDamage();
+        startAllEnemiesCooldown();
+
+        if (!isAnyPlayerAlive()) {
+            currentState = STATE_GAME_OVER;
+            menuManager.switchScene(STATE_GAME_OVER);
+        }
+    }
+
+    private boolean isAnyPlayerAlive() {
+        for (Player player : getActivePlayers()) {
+            if (player != null && player.isAlive()) return true;
+        }
+        return false;
+    }
+
+    private void drawPlayerLives() {
+        changeColor(Color.RED);
+        if (!isTwoPlayer) {
+            if (player1 != null) {
+                drawBoldText(10, 80, "Live: " + player1.getHp(), "Arial", 28);
+            }
+        } else {
+            if (destroyPlayer != null) {
+                drawBoldText(10, 80, "P1: " + destroyPlayer.getHp(), "Arial", 24);
+            }
+            if (generatePlayer != null) {
+                drawBoldText(10, 110, "P2: " + generatePlayer.getHp(), "Arial", 24);
+            }
         }
     }
 
@@ -148,6 +261,7 @@ public class GameInstance extends GameEngine {
                 }
             }
             updateEnemies(dt);
+            checkEnemyPlayerCollisions();
         }
     }
 
@@ -172,6 +286,7 @@ public class GameInstance extends GameEngine {
                 if(generatePlayer != null) generatePlayer.draw(this);
             }
             drawEnemies();
+            drawPlayerLives();
 
             //辅助网格 最后要删除
             drawDebugGrid();

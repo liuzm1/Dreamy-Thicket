@@ -17,10 +17,15 @@ public abstract class Enemy {
     protected int targetY;
 
     protected final int TILE_SIZE = 40;
-    protected final int MOVE_SPEED = 150;
+    protected int moveSpeed = 150;
 
     protected boolean isMoving = false;
     protected CollisionCheck collisionCheck;
+
+    /** 受伤后倒计时显示（9→0），大于 0 时敌人静止 */
+    protected int cooldownDisplay = 0;
+    protected double cooldownTimer = 0;
+    private static final double COOLDOWN_TICK = 1.0;
 
     protected Enemy(CollisionCheck collisionCheck) {
         this.collisionCheck = collisionCheck;
@@ -37,7 +42,38 @@ public abstract class Enemy {
         onReset();
     }
 
-    protected void onReset() {}
+    protected void onReset() {
+        cooldownDisplay = 0;
+        cooldownTimer = 0;
+    }
+
+    public boolean isOnCooldown() {
+        return cooldownDisplay > 0;
+    }
+
+    public int getCooldownDisplay() {
+        return cooldownDisplay;
+    }
+
+    /** 玩家受伤后：停在原地并显示 9→0 倒计时 */
+    public void startCooldown() {
+        cooldownDisplay = 9;
+        cooldownTimer = 0;
+        isMoving = false;
+        x = col * TILE_SIZE;
+        y = row * TILE_SIZE;
+        targetX = x;
+        targetY = y;
+    }
+
+    protected void updateCooldown(double dt) {
+        if (cooldownDisplay <= 0) return;
+        cooldownTimer += dt;
+        if (cooldownTimer >= COOLDOWN_TICK) {
+            cooldownTimer = 0;
+            cooldownDisplay--;
+        }
+    }
 
     public abstract void update(double dt);
 
@@ -57,18 +93,18 @@ public abstract class Enemy {
         if (!isMoving) return;
 
         if (x < targetX) {
-            x += MOVE_SPEED * dt;
+            x += moveSpeed * dt;
             if (x > targetX) x = targetX;
         } else if (x > targetX) {
-            x -= MOVE_SPEED * dt;
+            x -= moveSpeed * dt;
             if (x < targetX) x = targetX;
         }
 
         if (y < targetY) {
-            y += MOVE_SPEED * dt;
+            y += moveSpeed * dt;
             if (y > targetY) y = targetY;
         } else if (y > targetY) {
-            y -= MOVE_SPEED * dt;
+            y -= moveSpeed * dt;
             if (y < targetY) y = targetY;
         }
 

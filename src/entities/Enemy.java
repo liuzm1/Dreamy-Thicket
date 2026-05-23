@@ -18,14 +18,19 @@ public abstract class Enemy {
     protected int targetY;
 
     protected final int TILE_SIZE = 40;
-    protected int moveSpeed = 150;
+    protected int moveSpeed = 105;
 
     protected boolean isMoving = false;
+    protected double moveStartX;
+    protected double moveStartY;
+    protected double moveProgress;
     protected CollisionCheck collisionCheck;
 
     protected int cooldownDisplay = 0;
     protected double cooldownTimer = 0;
     private static final double COOLDOWN_TICK = 1.0;
+    /** 碰撞后原地停顿秒数（头顶倒计时 5→1） */
+    private static final int COOLDOWN_SECONDS = 5;
 
     protected Enemy(CollisionCheck collisionCheck) {
         this.collisionCheck = collisionCheck;
@@ -39,6 +44,7 @@ public abstract class Enemy {
         this.targetX = x;
         this.targetY = y;
         this.isMoving = false;
+        this.moveProgress = 0;
         onReset();
     }
 
@@ -80,9 +86,10 @@ public abstract class Enemy {
     }
 
     public void startCooldown() {
-        cooldownDisplay = 9;
+        cooldownDisplay = COOLDOWN_SECONDS;
         cooldownTimer = 0;
         isMoving = false;
+        moveProgress = 0;
         x = col * TILE_SIZE;
         y = row * TILE_SIZE;
         targetX = x;
@@ -113,8 +120,11 @@ public abstract class Enemy {
             return false;
         }
 
+        moveStartX = x;
+        moveStartY = y;
         targetX = nextCol * TILE_SIZE;
         targetY = nextRow * TILE_SIZE;
+        moveProgress = 0;
         isMoving = true;
         return true;
     }
@@ -125,29 +135,23 @@ public abstract class Enemy {
         x = targetX;
         y = targetY;
         isMoving = false;
+        moveProgress = 0;
     }
 
+    /** 按“每格耗时”插值移动，避免低速时帧率波动导致忽快忽慢或卡住 */
     protected void updateSmoothMovement(double dt) {
         if (!isMoving) return;
 
-        if (x < targetX) {
-            x += moveSpeed * dt;
-            if (x > targetX) x = targetX;
-        } else if (x > targetX) {
-            x -= moveSpeed * dt;
-            if (x < targetX) x = targetX;
-        }
+        double secondsPerTile = TILE_SIZE / (double) moveSpeed;
+        if (secondsPerTile < 0.05) secondsPerTile = 0.05;
 
-        if (y < targetY) {
-            y += moveSpeed * dt;
-            if (y > targetY) y = targetY;
-        } else if (y > targetY) {
-            y -= moveSpeed * dt;
-            if (y < targetY) y = targetY;
-        }
-
-        if (Math.abs(x - targetX) < 1 && Math.abs(y - targetY) < 1) {
+        moveProgress += dt / secondsPerTile;
+        if (moveProgress >= 1.0) {
             finishMove();
+            return;
         }
+
+        x = (int) Math.round(moveStartX + (targetX - moveStartX) * moveProgress);
+        y = (int) Math.round(moveStartY + (targetY - moveStartY) * moveProgress);
     }
 }

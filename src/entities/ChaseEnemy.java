@@ -15,7 +15,7 @@ import java.util.Queue;
  */
 public class ChaseEnemy extends AnimatedSpriteEnemy {
 
-    private static final int CHASE_MOVE_SPEED = 60;
+    private static final int CHASE_MOVE_SPEED = 45;
     private static final int GRID_COUNT = 16;
     private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 

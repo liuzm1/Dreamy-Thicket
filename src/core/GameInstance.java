@@ -83,7 +83,6 @@ public class GameInstance extends GameEngine {
             patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
             chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
         } else if (levelNum == 3) {
-            patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
             chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
             vineDestroyer = new VineDestroyerEnemy(this, collisionCheck, mapManager, 3, 5);
         }
@@ -156,7 +155,7 @@ public class GameInstance extends GameEngine {
         }
     }
 
-    /** 玩家与敌人同格则减命；仅碰撞的那只敌人进入 9→0 倒计时 */
+    /** 玩家与敌人同格则减命；仅碰撞的那只敌人进入 5→0 倒计时 */
     private void checkEnemyPlayerCollisions() {
         for (Player player : getActivePlayers()) {
             if (player == null) continue;

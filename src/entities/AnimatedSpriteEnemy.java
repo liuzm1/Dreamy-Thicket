@@ -72,8 +72,8 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
         }
 
         if (isOnCooldown()) {
-            engine.changeColor(Color.WHITE);
-            engine.drawBoldText(x + 6, y + 32, String.valueOf(cooldownDisplay), "Arial", 26);
+            engine.changeColor(Color.RED);
+            engine.drawBoldText(x + 12, y + 6, String.valueOf(cooldownDisplay), "Arial", 20);
         }
     }
 }

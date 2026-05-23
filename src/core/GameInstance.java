@@ -39,6 +39,9 @@ public class GameInstance extends GameEngine {
     private DestroyPlayer destroyPlayer;
     //双人游戏状态
     public boolean isTwoPlayer = false;
+    /** 双人模式共用生命（总共 3 条） */
+    private static final int MAX_LIVES = 3;
+    private int sharedLives = MAX_LIVES;
     //玩家初始化
     private void initPlayers(){
         player1 = new SoloPlayer(this,mapManager, 5, 5); // 从 (5,5) 开始
@@ -79,6 +82,10 @@ public class GameInstance extends GameEngine {
         } else if (levelNum == 3) {
             patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
         }
+    }
+
+    private void resetSharedLives() {
+        sharedLives = MAX_LIVES;
     }
 
     private Player[] getActivePlayers() {
@@ -136,7 +143,9 @@ public class GameInstance extends GameEngine {
         if (anyEnemyOnCooldown()) return;
 
         for (Player player : getActivePlayers()) {
-            if (player == null || !player.isAlive()) continue;
+            if (player == null) continue;
+            if (!isTwoPlayer && !player.isAlive()) continue;
+            if (isTwoPlayer && sharedLives <= 0) continue;
 
             if (patrolEnemies != null) {
                 for (PatrolEnemy enemy : patrolEnemies) {
@@ -158,20 +167,24 @@ public class GameInstance extends GameEngine {
     }
 
     private void onPlayerHitEnemy(Player player) {
-        player.takeDamage();
+        if (isTwoPlayer) {
+            if (sharedLives > 0) sharedLives--;
+        } else {
+            player.takeDamage();
+        }
         startAllEnemiesCooldown();
 
-        if (!isAnyPlayerAlive()) {
+        if (!hasLivesRemaining()) {
             currentState = STATE_GAME_OVER;
             menuManager.switchScene(STATE_GAME_OVER);
         }
     }
 
-    private boolean isAnyPlayerAlive() {
-        for (Player player : getActivePlayers()) {
-            if (player != null && player.isAlive()) return true;
+    private boolean hasLivesRemaining() {
+        if (isTwoPlayer) {
+            return sharedLives > 0;
         }
-        return false;
+        return player1 != null && player1.isAlive();
     }
 
     private void drawPlayerLives() {
@@ -181,12 +194,7 @@ public class GameInstance extends GameEngine {
                 drawBoldText(10, 80, "Live: " + player1.getHp(), "Arial", 28);
             }
         } else {
-            if (destroyPlayer != null) {
-                drawBoldText(10, 80, "P1: " + destroyPlayer.getHp(), "Arial", 24);
-            }
-            if (generatePlayer != null) {
-                drawBoldText(10, 110, "P2: " + generatePlayer.getHp(), "Arial", 24);
-            }
+            drawBoldText(10, 80, "Live: " + sharedLives, "Arial", 28);
         }
     }
 
@@ -227,6 +235,7 @@ public class GameInstance extends GameEngine {
 
         initKeys();
 
+        resetSharedLives();
         setupEnemiesForLevel(1);
     }
 
@@ -356,6 +365,9 @@ public class GameInstance extends GameEngine {
         if (nextState >= 100) {
             currentLevel = nextState; // 重点：把这个 101 记下来
             int levelNum = nextState - 100;
+            if (isTwoPlayer && currentState == STATE_GAME_OVER) {
+                resetSharedLives();
+            }
             mapManager.loadLevel("resource/map" + levelNum + ".txt");
 
             // 关键：重置玩家
@@ -387,6 +399,9 @@ public class GameInstance extends GameEngine {
                 if(generatePlayer != null) generatePlayer.reset(11, 11);
             }
             setupEnemiesForLevel(levelNum);
+            if (isTwoPlayer) {
+                resetSharedLives();
+            }
         }
 
         // --- C. 从菜单返回游戏 ---
@@ -403,6 +418,7 @@ public class GameInstance extends GameEngine {
                 player1.reset(5, 5);
                 destroyPlayer.reset(5, 5);
                 generatePlayer.reset(11, 11);
+                resetSharedLives();
             }
 
             currentState = nextState;

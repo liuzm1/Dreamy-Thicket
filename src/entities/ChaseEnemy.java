@@ -4,6 +4,8 @@ import core.GameEngine;
 import maps.CollisionCheck;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Queue;
 
 /**
@@ -13,11 +15,11 @@ import java.util.Queue;
  */
 public class ChaseEnemy extends AnimatedSpriteEnemy {
 
-    private static final int CHASE_MOVE_SPEED = 95;
+    private static final int CHASE_MOVE_SPEED = 60;
     private static final int GRID_COUNT = 16;
     private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
-    private PatrolEnemy[] patrolEnemies;
+    private Enemy[] peerEnemies = new Enemy[0];
 
     public ChaseEnemy(GameEngine engine, CollisionCheck collisionCheck,
                       int startCol, int startRow) {
@@ -26,8 +28,8 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         reset(startCol, startRow);
     }
 
-    public void setPatrolEnemies(PatrolEnemy[] patrolEnemies) {
-        this.patrolEnemies = patrolEnemies;
+    public void setPeerEnemies(Enemy[] peerEnemies) {
+        this.peerEnemies = peerEnemies != null ? peerEnemies : new Enemy[0];
     }
 
     public void update(double dt, Player[] players) {
@@ -38,7 +40,7 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         if (!isMoving) {
             Player target = pickClosestPlayer(players);
             if (target != null) {
-                tryChaseStep(target);
+                tryChaseStep(target, players);
             }
         }
         updateWalkAnimation(dt);
@@ -66,10 +68,10 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         return closest;
     }
 
-    private void tryChaseStep(Player target) {
-        int[] step = findNextStepBfs(target.col, target.row);
+    private void tryChaseStep(Player target, Player[] players) {
+        int[] step = findNextStepBfs(target.col, target.row, target, players);
         if (step == null) {
-            step = pickAnyValidMove();
+            step = pickMoveToward(target.col, target.row, target, players);
         }
         if (step != null) {
             setSpriteRowFromDelta(step[0], step[1]);
@@ -78,7 +80,7 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
     }
 
     /** BFS 找通往目标的最短路径上的第一步（可绕石头/藤蔓） */
-    private int[] findNextStepBfs(int targetCol, int targetRow) {
+    private int[] findNextStepBfs(int targetCol, int targetRow, Player target, Player[] players) {
         if (col == targetCol && row == targetRow) return null;
 
         boolean[][] visited = new boolean[GRID_COUNT][GRID_COUNT];
@@ -106,7 +108,7 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
                 int nr = r + d[1];
                 if (nc < 0 || nc >= GRID_COUNT || nr < 0 || nr >= GRID_COUNT) continue;
                 if (visited[nc][nr]) continue;
-                if (!canMoveTo(nc, nr)) continue;
+                if (!canMoveTo(nc, nr, target, players)) continue;
 
                 visited[nc][nr] = true;
                 if (c == col && r == row) {
@@ -122,24 +124,28 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         return null;
     }
 
-    /** BFS 找不到路时（如被 Enemy1 暂时挡住），先走一步可走的格子脱困 */
-    private int[] pickAnyValidMove() {
-        for (int[] d : DIRS) {
-            if (canMoveTo(col + d[0], row + d[1])) {
+    /** BFS 失败时（被藤蔓/Enemy1 暂时挡住），选一步最接近玩家的可走方向 */
+    private int[] pickMoveToward(int targetCol, int targetRow, Player target, Player[] players) {
+        int[][] options = Arrays.copyOf(DIRS, DIRS.length);
+        Arrays.sort(options, Comparator.comparingInt(d ->
+                Math.abs(targetCol - (col + d[0])) + Math.abs(targetRow - (row + d[1]))));
+
+        for (int[] d : options) {
+            if (canMoveTo(col + d[0], row + d[1], target, players)) {
                 return d;
             }
         }
         return null;
     }
 
-    private boolean canMoveTo(int nextCol, int nextRow) {
+    private boolean canMoveTo(int nextCol, int nextRow, Player target, Player[] players) {
         if (collisionCheck.isSolid(nextCol, nextRow)) return false;
+        if (Enemy.isBlockedByPeer(this, peerEnemies, nextCol, nextRow)) return false;
 
-        if (patrolEnemies != null) {
-            for (PatrolEnemy patrol : patrolEnemies) {
-                if (patrol != null && patrol.occupiesOrHeadingTo(nextCol, nextRow)) {
-                    return false;
-                }
+        if (players != null) {
+            for (Player p : players) {
+                if (p == null || p == target) continue;
+                if (p.col == nextCol && p.row == nextRow) return false;
             }
         }
         return true;

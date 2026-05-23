@@ -58,8 +58,15 @@ public abstract class Player {
     // 你的对手
     protected Player opponent;
 
+    /** 藤蔓生长时用于检测敌人占格（由 GameInstance 每帧注入） */
+    protected Enemy[] enemies = new Enemy[0];
+
     public void setOpponent(Player opponent) {
         this.opponent = opponent;
+    }
+
+    public void setEnemies(Enemy[] enemies) {
+        this.enemies = enemies != null ? enemies : new Enemy[0];
     }
 
     // 技能
@@ -81,7 +88,7 @@ public abstract class Player {
     }
 
     // ========================== 【移动逻辑】 =========================
-    public void move(int dx, int dy, CollisionCheck collisionCheck,Player otherPlayer) {
+    public void move(int dx, int dy, CollisionCheck collisionCheck, Player otherPlayer) {
         //锁死
         if (isCasting || isClearing) return;
         // 无论是否移动成功，都更新朝向
@@ -92,8 +99,8 @@ public abstract class Player {
         int nextCol = this.col + dx;
         int nextRow = this.row + dy;
 
-        // 1. 检查地图障碍 (墙、藤蔓)
-        if (collisionCheck.isSolid(nextCol, nextRow)) return;
+        // 1. 检查地图障碍
+        if (!canEnterTile(collisionCheck, nextCol, nextRow)) return;
 
         if (otherPlayer != null && otherPlayer.col == nextCol && otherPlayer.row == nextRow) {
             // 如果格子里有人，撞不动，直接返回
@@ -133,8 +140,10 @@ public abstract class Player {
                 if (y < targetY) y = targetY;
             }
 
-            // 到达目标 → 停止移动
-            if (x == targetX && y == targetY) {
+            // 到达目标 → 停止移动（用距离判断，避免浮点误差卡死）
+            if (Math.abs(x - targetX) < 1 && Math.abs(y - targetY) < 1) {
+                x = targetX;
+                y = targetY;
                 isMoving = false;
             }
 
@@ -175,7 +184,34 @@ public abstract class Player {
         this.direction = DIR_DOWN;
         this.hp = 3;
         this.isMoving = false;
+        this.isCasting = false;
+        this.isClearing = false;
+        this.castTimer = 0;
+        this.remainingVineGrids = 0;
         this.animationFrame = 0;
+    }
+
+    /** 子类可覆写：判定该格是否可进入（默认墙/藤蔓等均不可走） */
+    protected boolean canEnterTile(CollisionCheck collisionCheck, int col, int row) {
+        return !collisionCheck.isSolid(col, row);
+    }
+
+    /** 藤蔓只能种在草地，且格子上不能有对手或敌人 */
+    protected boolean canPlantVineAt(int c, int r) {
+        if (mapManager.getTile(c, r) != 0) return false;
+        if (opponent != null && opponent.col == c && opponent.row == r) return false;
+        return !isOccupiedByEnemy(c, r);
+    }
+
+    protected boolean isOccupiedByEnemy(int c, int r) {
+        for (Enemy enemy : enemies) {
+            if (enemy == null) continue;
+            if (enemy.col == c && enemy.row == r) return true;
+            if (enemy.isMoving && enemy.getTargetCol() == c && enemy.getTargetRow() == r) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // 更新方向

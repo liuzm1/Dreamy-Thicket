@@ -10,6 +10,7 @@ public class PatrolEnemy extends AnimatedSpriteEnemy {
 
     private final int patrolRow;
     private int moveDir;
+    private Enemy[] peerEnemies = new Enemy[0];
 
     public PatrolEnemy(GameEngine engine, CollisionCheck collisionCheck,
                        int startCol, int patrolRow, int initialMoveDir) {
@@ -17,6 +18,10 @@ public class PatrolEnemy extends AnimatedSpriteEnemy {
         this.patrolRow = patrolRow;
         this.moveDir = initialMoveDir;
         reset(startCol, patrolRow);
+    }
+
+    public void setPeerEnemies(Enemy[] peerEnemies) {
+        this.peerEnemies = peerEnemies != null ? peerEnemies : new Enemy[0];
     }
 
     @Override
@@ -38,13 +43,22 @@ public class PatrolEnemy extends AnimatedSpriteEnemy {
                 moveDir = -moveDir;
                 nextCol = col + moveDir;
             }
-            if (!collisionCheck.isSolid(nextCol, patrolRow)) {
+            if (canPatrolMove(nextCol)) {
                 tryMoveTo(nextCol, patrolRow);
+            } else {
+                moveDir = -moveDir;
             }
         }
 
         spriteRow = moveDir > 0 ? ROW_RIGHT : ROW_LEFT;
         updateWalkAnimation(dt);
         updateSmoothMovement(dt);
+    }
+
+    private boolean canPatrolMove(int nextCol) {
+        if (collisionCheck.isSolid(nextCol, patrolRow)) return false;
+        if (nextCol == col) return false;
+        if (Enemy.isBlockedByPeer(this, peerEnemies, nextCol, patrolRow)) return false;
+        return true;
     }
 }

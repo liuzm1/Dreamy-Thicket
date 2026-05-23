@@ -5,6 +5,7 @@ import maps.CollisionCheck;
 
 /**
  * 敌人基类：网格坐标 + 平滑像素移动。
+ * 逻辑格子在移动动画结束后才更新，避免寻路互相卡死。
  */
 public abstract class Enemy {
     public int col;
@@ -22,7 +23,6 @@ public abstract class Enemy {
     protected boolean isMoving = false;
     protected CollisionCheck collisionCheck;
 
-    /** 受伤后倒计时显示（9→0），大于 0 时敌人静止 */
     protected int cooldownDisplay = 0;
     protected double cooldownTimer = 0;
     private static final double COOLDOWN_TICK = 1.0;
@@ -55,7 +55,30 @@ public abstract class Enemy {
         return cooldownDisplay;
     }
 
-    /** 玩家受伤后：停在原地并显示 9→0 倒计时 */
+    public int getTargetCol() {
+        return isMoving ? targetX / TILE_SIZE : col;
+    }
+
+    public int getTargetRow() {
+        return isMoving ? targetY / TILE_SIZE : row;
+    }
+
+    /** 占用当前格或正在移动到的目标格 */
+    public boolean occupiesOrHeadingTo(int c, int r) {
+        if (col == c && row == r) return true;
+        return isMoving && getTargetCol() == c && getTargetRow() == r;
+    }
+
+    /** 该格是否被其他敌人占据或即将占据 */
+    public static boolean isBlockedByPeer(Enemy self, Enemy[] peers, int c, int r) {
+        if (peers == null) return false;
+        for (Enemy peer : peers) {
+            if (peer == null || peer == self) continue;
+            if (peer.occupiesOrHeadingTo(c, r)) return true;
+        }
+        return false;
+    }
+
     public void startCooldown() {
         cooldownDisplay = 9;
         cooldownTimer = 0;
@@ -79,14 +102,29 @@ public abstract class Enemy {
 
     public abstract void draw(GameEngine engine);
 
-    protected void tryMoveTo(int nextCol, int nextRow) {
-        if (collisionCheck.isSolid(nextCol, nextRow)) return;
+    protected boolean tryMoveTo(int nextCol, int nextRow) {
+        if (collisionCheck.isSolid(nextCol, nextRow)) return false;
+        // 移动中：仅当目标格变化时才重定向（供追踪怪连贯换格）
+        if (isMoving) {
+            if (targetX / TILE_SIZE == nextCol && targetY / TILE_SIZE == nextRow) {
+                return false;
+            }
+        } else if (nextCol == col && nextRow == row) {
+            return false;
+        }
 
-        col = nextCol;
-        row = nextRow;
-        targetX = col * TILE_SIZE;
-        targetY = row * TILE_SIZE;
+        targetX = nextCol * TILE_SIZE;
+        targetY = nextRow * TILE_SIZE;
         isMoving = true;
+        return true;
+    }
+
+    protected void finishMove() {
+        col = targetX / TILE_SIZE;
+        row = targetY / TILE_SIZE;
+        x = targetX;
+        y = targetY;
+        isMoving = false;
     }
 
     protected void updateSmoothMovement(double dt) {
@@ -108,8 +146,8 @@ public abstract class Enemy {
             if (y < targetY) y = targetY;
         }
 
-        if (x == targetX && y == targetY) {
-            isMoving = false;
+        if (Math.abs(x - targetX) < 1 && Math.abs(y - targetY) < 1) {
+            finishMove();
         }
     }
 }

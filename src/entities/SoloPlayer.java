@@ -44,10 +44,9 @@ public class SoloPlayer extends Player {
         if (tile == 5) {
             // 如果面前已经是藤蔓，进入消除模式
             isClearing = true;
-            remainingVineGrids = 11; // 消除距离也可以设长一点
+            remainingVineGrids = 11;
             castTimer = 0;
-        } else if (tile == 0) {
-            // 如果面前是空地，进入生长模式
+        } else if (canPlantVineAt(currentCastCol, currentCastRow)) {
             isCasting = true;
             remainingVineGrids = 11;
             castTimer = 0;
@@ -70,27 +69,19 @@ public class SoloPlayer extends Player {
     }
 
     private void growOneStep() {
-        // 1. 检查边界和地形
         if (currentCastCol < 0 || currentCastCol >= 16
                 || currentCastRow < 0 || currentCastRow >= 16) {
-            isClearing = false;
-            return;
-        }
-        // 假设 1 是墙，6 是收集物 (Collectibles)
-        int tile = mapManager.getTile(currentCastCol, currentCastRow);
-
-        // 如果撞墙、超出地图、或者格子里有收集物，停止生长
-        if (tile == 1 || tile == 6 || remainingVineGrids <= 0) {
             isCasting = false;
             return;
         }
 
-        // 如果是空地，生成藤蔓
-        if (tile == 0) {
-            mapManager.setTile(currentCastCol, currentCastRow, 5);
+        if (!canPlantVineAt(currentCastCol, currentCastRow)) {
+            isCasting = false;
+            return;
         }
 
-        // 计算下一格坐标
+        mapManager.setTile(currentCastCol, currentCastRow, 5);
+
         if (direction == DIR_UP) currentCastRow--;
         else if (direction == DIR_DOWN) currentCastRow++;
         else if (direction == DIR_LEFT) currentCastCol--;
@@ -98,7 +89,6 @@ public class SoloPlayer extends Player {
 
         remainingVineGrids--;
 
-        // 次数用完则停止
         if (remainingVineGrids <= 0) {
             isCasting = false;
         }

@@ -56,9 +56,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
 
     /** 该格是否被此敌人占据或正在走向 */
     public boolean occupiesOrHeadingTo(int c, int r) {
-        if (col == c && row == r) return true;
-        if (isMoving && targetX / TILE_SIZE == c && targetY / TILE_SIZE == r) return true;
-        return false;
+        return super.occupiesOrHeadingTo(c, r);
     }
 
     @Override

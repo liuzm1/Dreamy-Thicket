@@ -7,6 +7,7 @@ import entities.GeneratePlayer;
 import entities.PatrolEnemy;
 import entities.Player;
 import entities.SoloPlayer;
+import entities.VineDestroyerEnemy;
 import maps.CollisionCheck;
 import scenes.GameScene;
 import maps.MapManager;
@@ -57,6 +58,8 @@ public class GameInstance extends GameEngine {
     private PatrolEnemy[] patrolEnemies;
     /** 第二关：追踪最近玩家的敌人 */
     private ChaseEnemy chaseEnemy;
+    /** 第三关：消除最近藤蔓的敌人 */
+    private VineDestroyerEnemy vineDestroyer;
     /** 可行走区域中间行 (行 2~13 的中点) */
     private static final int MIDDLE_PATROL_ROW = 7;
     /** 第二、三关中间单只巡逻怪起始列 */
@@ -69,6 +72,7 @@ public class GameInstance extends GameEngine {
     private void setupEnemiesForLevel(int levelNum) {
         patrolEnemies = null;
         chaseEnemy = null;
+        vineDestroyer = null;
 
         if (levelNum == 1) {
             patrolEnemies = new PatrolEnemy[]{
@@ -78,9 +82,10 @@ public class GameInstance extends GameEngine {
         } else if (levelNum == 2) {
             patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
             chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
-            chaseEnemy.setPatrolEnemies(patrolEnemies);
         } else if (levelNum == 3) {
             patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
+            vineDestroyer = new VineDestroyerEnemy(this, collisionCheck, mapManager, 3, 5);
         }
     }
 
@@ -95,15 +100,45 @@ public class GameInstance extends GameEngine {
         return new Player[]{destroyPlayer, generatePlayer};
     }
 
+    private Enemy[] getAllEnemies() {
+        java.util.ArrayList<Enemy> list = new java.util.ArrayList<>();
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null) list.add(enemy);
+            }
+        }
+        if (chaseEnemy != null) list.add(chaseEnemy);
+        if (vineDestroyer != null) list.add(vineDestroyer);
+        return list.toArray(new Enemy[0]);
+    }
+
+    private void syncEnemyPeers() {
+        Enemy[] all = getAllEnemies();
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null) enemy.setPeerEnemies(all);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.setPeerEnemies(all);
+        }
+        if (vineDestroyer != null) {
+            vineDestroyer.setPeerEnemies(all);
+        }
+    }
+
     private void updateEnemies(double dt) {
+        syncEnemyPeers();
         if (patrolEnemies != null) {
             for (PatrolEnemy enemy : patrolEnemies) {
                 enemy.update(dt);
             }
         }
         if (chaseEnemy != null) {
-            chaseEnemy.setPatrolEnemies(patrolEnemies);
             chaseEnemy.update(dt, getActivePlayers());
+        }
+        if (vineDestroyer != null) {
+            vineDestroyer.update(dt);
         }
     }
 
@@ -116,32 +151,13 @@ public class GameInstance extends GameEngine {
         if (chaseEnemy != null) {
             chaseEnemy.draw(this);
         }
-    }
-
-    private boolean anyEnemyOnCooldown() {
-        if (patrolEnemies != null) {
-            for (PatrolEnemy enemy : patrolEnemies) {
-                if (enemy != null && enemy.isOnCooldown()) return true;
-            }
-        }
-        return chaseEnemy != null && chaseEnemy.isOnCooldown();
-    }
-
-    private void startAllEnemiesCooldown() {
-        if (patrolEnemies != null) {
-            for (PatrolEnemy enemy : patrolEnemies) {
-                if (enemy != null) enemy.startCooldown();
-            }
-        }
-        if (chaseEnemy != null) {
-            chaseEnemy.startCooldown();
+        if (vineDestroyer != null) {
+            vineDestroyer.draw(this);
         }
     }
 
-    /** 玩家与敌人同格则减命，并触发全体敌人 9→0 倒计时 */
+    /** 玩家与敌人同格则减命；仅碰撞的那只敌人进入 9→0 倒计时 */
     private void checkEnemyPlayerCollisions() {
-        if (anyEnemyOnCooldown()) return;
-
         for (Player player : getActivePlayers()) {
             if (player == null) continue;
             if (!isTwoPlayer && !player.isAlive()) continue;
@@ -149,14 +165,20 @@ public class GameInstance extends GameEngine {
 
             if (patrolEnemies != null) {
                 for (PatrolEnemy enemy : patrolEnemies) {
-                    if (enemy != null && isSameGrid(enemy, player)) {
-                        onPlayerHitEnemy(player);
+                    if (enemy != null && !enemy.isOnCooldown() && isSameGrid(enemy, player)) {
+                        onPlayerHitEnemy(player, enemy);
                         return;
                     }
                 }
             }
-            if (chaseEnemy != null && isSameGrid(chaseEnemy, player)) {
-                onPlayerHitEnemy(player);
+            if (chaseEnemy != null && !chaseEnemy.isOnCooldown()
+                    && isSameGrid(chaseEnemy, player)) {
+                onPlayerHitEnemy(player, chaseEnemy);
+                return;
+            }
+            if (vineDestroyer != null && !vineDestroyer.isOnCooldown()
+                    && isSameGrid(vineDestroyer, player)) {
+                onPlayerHitEnemy(player, vineDestroyer);
                 return;
             }
         }
@@ -166,13 +188,13 @@ public class GameInstance extends GameEngine {
         return enemy.col == player.col && enemy.row == player.row;
     }
 
-    private void onPlayerHitEnemy(Player player) {
+    private void onPlayerHitEnemy(Player player, Enemy hitter) {
         if (isTwoPlayer) {
             if (sharedLives > 0) sharedLives--;
         } else {
             player.takeDamage();
         }
-        startAllEnemiesCooldown();
+        hitter.startCooldown();
 
         if (!hasLivesRemaining()) {
             currentState = STATE_GAME_OVER;
@@ -245,6 +267,7 @@ public class GameInstance extends GameEngine {
         if (currentState == STATE_PLAYING) {
             if(!isTwoPlayer) {
                 if(player1 != null) {
+                    player1.setEnemies(getAllEnemies());
                     player1.update(dt);
                     // 直接根据按键状态调用 move
                     if (up) player1.move(0, -1, collisionCheck,null);
@@ -262,6 +285,7 @@ public class GameInstance extends GameEngine {
                     if (right) destroyPlayer.move(1, 0, collisionCheck,generatePlayer);
                 }
                 if(generatePlayer != null) {
+                    generatePlayer.setEnemies(getAllEnemies());
                     generatePlayer.update(dt);
                     if (up_P2) generatePlayer.move(0, -1, collisionCheck,destroyPlayer);
                     if (down_P2) generatePlayer.move(0, 1, collisionCheck,destroyPlayer);

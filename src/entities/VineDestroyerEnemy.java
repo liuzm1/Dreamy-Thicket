@@ -32,7 +32,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
 
-    private static final int VINE_MOVE_SPEED = 70;
+    private static final int VINE_MOVE_SPEED = 20;
 
     private static final int GRID_COUNT = 16;
 

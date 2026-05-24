@@ -47,7 +47,7 @@ public class GameInstance extends GameEngine {
     private void initPlayers(){
         player1 = new SoloPlayer(this,mapManager, 5, 5); // 从 (5,5) 开始
         destroyPlayer = new DestroyPlayer(this,mapManager, 5, 5);
-        generatePlayer = new GeneratePlayer(this,mapManager, 11, 11);
+        generatePlayer = new GeneratePlayer(this,mapManager, 10, 10);
         destroyPlayer.setOpponent(generatePlayer);
         generatePlayer.setOpponent(destroyPlayer);
     }
@@ -76,15 +76,17 @@ public class GameInstance extends GameEngine {
 
         if (levelNum == 1) {
             patrolEnemies = new PatrolEnemy[]{
-                    new PatrolEnemy(this, collisionCheck, 4, MIDDLE_PATROL_ROW, -1),
-                    new PatrolEnemy(this, collisionCheck, 10, MIDDLE_PATROL_ROW, 1)
+                    new PatrolEnemy(this, collisionCheck, 3, 3, -1),
+                    new PatrolEnemy(this, collisionCheck, 12, 12, 1)
             };
         } else if (levelNum == 2) {
-            patrolEnemies = new PatrolEnemy[]{createMiddlePatrolEnemy()};
-            chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
+            patrolEnemies = new PatrolEnemy[]{
+                    new PatrolEnemy(this,collisionCheck,13,2,-1),
+                    new PatrolEnemy(this,collisionCheck,2,13,1)};
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 13, 7);
         } else if (levelNum == 3) {
-            chaseEnemy = new ChaseEnemy(this, collisionCheck, 11, 7);
-            vineDestroyer = new VineDestroyerEnemy(this, collisionCheck, mapManager, 3, 5);
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 3, 10);
+            vineDestroyer = new VineDestroyerEnemy(this, collisionCheck, mapManager, 12, 5);
         }
     }
 
@@ -398,7 +400,7 @@ public class GameInstance extends GameEngine {
             if (player1 != null) player1.reset(5, 5);
             }else{
                 if(destroyPlayer != null) destroyPlayer.reset(5, 5);
-                if(generatePlayer != null) generatePlayer.reset(11, 11);
+                if(generatePlayer != null) generatePlayer.reset(10, 10);
             }
             setupEnemiesForLevel(levelNum);
 
@@ -419,7 +421,7 @@ public class GameInstance extends GameEngine {
 
             }else{
                 if(destroyPlayer != null) destroyPlayer.reset(5, 5);
-                if(generatePlayer != null) generatePlayer.reset(11, 11);
+                if(generatePlayer != null) generatePlayer.reset(10, 10);
             }
             setupEnemiesForLevel(levelNum);
             if (isTwoPlayer) {
@@ -440,7 +442,7 @@ public class GameInstance extends GameEngine {
             if (nextState == STATE_START_MENU && player1 != null) {
                 player1.reset(5, 5);
                 destroyPlayer.reset(5, 5);
-                generatePlayer.reset(11, 11);
+                generatePlayer.reset(10, 10);
                 resetSharedLives();
             }
 

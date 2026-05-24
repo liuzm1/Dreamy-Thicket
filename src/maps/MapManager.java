@@ -61,7 +61,7 @@ public class MapManager {
                 int type = mapData[r][c];
                 //障碍物
                 if (type == 1) engine.drawImage(stoneImg, px+4, py+4, TILE_SIZE-8, TILE_SIZE-8);
-                else if(type == 5) engine.drawImage(vine, px-5, py-8, 43, 40);
+                else if(type == 5) engine.drawImage(vine, px+2, py+2, 35, 35);
             }
         }
 

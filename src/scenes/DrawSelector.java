@@ -2,6 +2,7 @@ package scenes;
 
 import core.GameEngine;
 
+
 import java.awt.*;
 
 public class DrawSelector {
@@ -24,6 +25,7 @@ public class DrawSelector {
             if (mx >= x && mx <= x + w && my >= y && my <= y + h) {
                 // 悬浮效果：在按钮左侧画个小图标
                 engine.drawImage(selectorIcon,(x-32+w/2), y - 64, 64, 64);
+
                 break; // 找到一个悬浮就跳出循环
             }
         }

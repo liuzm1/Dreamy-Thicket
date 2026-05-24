@@ -14,8 +14,17 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 public class GameInstance extends GameEngine {
+    public int animFrame = 0;  // 把 private 改成 public
     //定义窗口常量
     private final int WINDOW_SIZE = 640;
+
+    // ====================== 分数 & 倒计时 ======================
+    private int score = 0;
+    private float countdownTime = 60.0f; // 每局60秒
+    private int targetScore = 80;// 默认第一关目标80分
+    private boolean gameEnded = false;
+    private float winDelayTimer = 0;//胜利延时计时器
+    // ===========================================================
     //-------------------------------------------------------
     //Maps
     //-------------------------------------------------------
@@ -121,6 +130,14 @@ public class GameInstance extends GameEngine {
     @Override
     public void update(double dt) {
         if (currentState == STATE_PLAYING) {
+            // ---------------- 倒计时 ----------------
+            countdownTime -= dt;
+            if (countdownTime <= 0) {
+                countdownTime = 0;
+                currentState = STATE_GAME_OVER;
+                menuManager.switchScene(STATE_GAME_OVER);
+            }
+
             if(!isTwoPlayer) {
                 if(player1 != null) {
                     player1.update(dt);
@@ -148,10 +165,54 @@ public class GameInstance extends GameEngine {
                 }
             }
             updateEnemies(dt);
+            animFrame++;
+        }
+
+        // 胜利延迟（独立运行）
+        // ========================
+        if (currentState == STATE_PLAYING && score >= targetScore) {
+            winDelayTimer += dt;
+            if (winDelayTimer >= 1.0f) {  // 1秒后跳转
+                currentState = STATE_VICTOR;
+                menuManager.switchScene(STATE_VICTOR);
+                winDelayTimer = 0;
+                score = -999;// 关键：立刻把分数拉到 0 以下，防止下一帧又触发
+            }
         }
     }
 
+    // 加分
+    public void addScore(int value) {
+        score += value;
+        checkWin();
+    }
 
+    // 减分
+    public void minusScore(int value) {
+        score -= value;
+    }
+
+    // 获取分数
+    public int getScore() {
+        return score;
+    }
+
+    // 重置分数与时间
+    public void resetScoreAndTime() {
+        score = 0;
+        countdownTime = 60.0f;
+        gameEnded = false;
+        winDelayTimer = 0; // 关键：把胜利计时器也清零
+    }
+    // 胜利检测
+    private void checkWin() {
+    }
+    // 检查是否游戏结束（时间到）
+    public void checkGameOver() {
+        gameEnded = true;
+        currentState = STATE_GAME_OVER;
+        menuManager.switchScene(STATE_GAME_OVER);
+    }
 
     @Override
     public void paintComponent() {
@@ -178,7 +239,20 @@ public class GameInstance extends GameEngine {
             int mx = getMouseX();
             int my = getMouseY();
             changeColor(Color.YELLOW);
-            drawBoldText(10, 40, "(" + (mx/40) + " , " + (my/40 ) + ")");
+            drawBoldText(10, 625, "(" + (mx/40) + " , " + (my/40 ) + ")");
+        }
+
+        if (currentState == STATE_PLAYING) {
+            changeColor(Color.WHITE);
+            //显示分数
+            drawBoldText(10, 30, "Score: " + score);
+
+            // 显示目标分数
+            drawBoldText(10, 75, "Target: " + targetScore);
+
+            // 显示倒计时
+            int seconds = (int) countdownTime;
+            drawBoldText(10, 590, "Time: " + seconds);
         }
     }
 
@@ -235,13 +309,77 @@ public class GameInstance extends GameEngine {
         }
         if (nextState == -1) return; // 无效点击直接返回
 
+
+        // ==============================================
+        // 处理胜利界面按钮（关键修复！）
+        // ==============================================
+        if (currentState == STATE_VICTOR) {
+
+            // 1 = 重新玩当前关卡
+            if (nextState == 1) {
+                resetScoreAndTime(); // 强制清零
+                int levelNum = currentLevel - 100;
+                mapManager.loadLevel("resource/map" + levelNum + ".txt");
+                if(!isTwoPlayer) {
+                    if (player1 != null) player1.reset(5, 5);
+                }else{
+                    if(destroyPlayer != null) destroyPlayer.reset(5, 5);
+                    if(generatePlayer != null) generatePlayer.reset(11, 11);
+                }
+                setupEnemiesForLevel(levelNum);
+                currentState = STATE_PLAYING;
+                menuManager.switchScene(STATE_PLAYING);
+            }
+
+            // 2 = 下一关
+            else if (nextState == 2) {
+                resetScoreAndTime(); // 强制清零
+                int levelNum = currentLevel - 100;
+                levelNum++;
+                if (levelNum > 3) levelNum = 1;
+                currentLevel = 100 + levelNum;
+
+                mapManager.loadLevel("resource/map" + levelNum + ".txt");
+                if (levelNum == 1) targetScore = 80;
+                else if (levelNum == 2) targetScore = 120;
+                else if (levelNum == 3) targetScore = 160;
+
+                if(!isTwoPlayer) {
+                    if (player1 != null) player1.reset(5, 5);
+                }else{
+                    if(destroyPlayer != null) destroyPlayer.reset(5, 5);
+                    if(generatePlayer != null) generatePlayer.reset(11, 11);
+                }
+                setupEnemiesForLevel(levelNum);
+                currentState = STATE_PLAYING;
+                menuManager.switchScene(STATE_PLAYING);
+            }
+
+            // 0 = 返回主菜单
+            else if (nextState == 0) {
+                resetScoreAndTime();
+                currentState = STATE_START_MENU;
+                menuManager.switchScene(STATE_START_MENU);
+            }
+            return;
+        }
+
         // 3. 分支处理
 
         // --- A. 进入新关卡 (从关卡选择界面点进来) ---
         if (nextState >= 100) {
+            resetScoreAndTime(); // 强制清零
             currentLevel = nextState; // 重点：把这个 101 记下来
             int levelNum = nextState - 100;
             mapManager.loadLevel("resource/map" + levelNum + ".txt");
+            // 设置每关目标分数
+            if (levelNum == 1) {
+                targetScore = 80;
+            } else if (levelNum == 2) {
+                targetScore = 120;
+            } else if (levelNum == 3) {
+                targetScore = 160;
+            }
 
             // 关键：重置玩家
             if(!isTwoPlayer) {
@@ -251,13 +389,14 @@ public class GameInstance extends GameEngine {
                 if(generatePlayer != null) generatePlayer.reset(11, 11);
             }
             setupEnemiesForLevel(levelNum);
-
             currentState = STATE_PLAYING;
             menuManager.switchScene(STATE_PLAYING);
+            return;
         }
 
         // --- B. 重新开始当前关卡 (在游戏中点击了重置) ---
         else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
+            resetScoreAndTime(); // 强制清零
             // 这里可以直接重新 reset 玩家和地图
             // 这里的 currentLevel 可能是 101, 102 或 103
             int levelNum = currentLevel - 100;
@@ -276,15 +415,18 @@ public class GameInstance extends GameEngine {
 
         // --- C. 从菜单返回游戏 ---
         else if (nextState == STATE_PLAYING && currentState != STATE_PLAYING) {
+            resetScoreAndTime(); // 强制清零
             // 这种情况下通常不 reset 玩家，让他接着玩
             currentState = STATE_PLAYING;
             menuManager.switchScene(STATE_PLAYING);
+            return;
         }
 
         // --- D. 普通页面切换 (主菜单、帮助、暂停等) ---
         else if (nextState != currentState) {
             // 如果是从游戏切回主菜单，也可以考虑在这里顺便 reset 一下
             if (nextState == STATE_START_MENU && player1 != null) {
+                resetScoreAndTime(); // 强制清零
                 player1.reset(5, 5);
                 destroyPlayer.reset(5, 5);
                 generatePlayer.reset(11, 11);

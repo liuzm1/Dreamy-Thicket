@@ -17,8 +17,11 @@ public class CollisionCheck {
         //获取地图数据进行判断
         int tileType = mapManager.getMapData()[row][col];
 
-        // 这里的 1 是石头，5 是藤蔓（藤蔓也挡路）
-        return tileType == 1 || tileType == 5 ||tileType == 8;
+        int tile = mapManager.getTile(col, row);
+        boolean isOuter8 = (tile ==8) && (row==0||row==15||col==0||col==15); // 新增
+        //这里的 1 是石头，5 是藤蔓（藤蔓也挡路）
+        return tile ==1 || tile ==5 || isOuter8; // 修改这行
+
     }
 
     /*

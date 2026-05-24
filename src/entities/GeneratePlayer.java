@@ -6,14 +6,7 @@ import maps.MapManager;
 public class GeneratePlayer extends Player{
 
     public GeneratePlayer(GameEngine engine, MapManager mapManager, int startCol, int startRow) {
-        //人物站在的格子位置
-        this.mapManager = mapManager;
-        this.col = startCol;
-        this.row = startRow;
-        //人物站在的像素位置
-        this.x = startCol * TILE_SIZE;
-        this.y = startRow * TILE_SIZE;
-
+        super(engine, mapManager, startCol, startRow);
         isClearing = false;
 
         spriteSheet = engine.loadImage("resource/sprites/entities/P2.png");

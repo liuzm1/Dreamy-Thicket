@@ -1,6 +1,7 @@
 package entities;
 
 import core.GameEngine;
+import core.GameInstance;
 import maps.CollisionCheck;
 import maps.MapManager;
 
@@ -13,6 +14,7 @@ public abstract class Player {
     public int row;
 
     protected MapManager mapManager;
+    protected GameEngine game; // 加在这里！
 
     // 屏幕像素位置（实际绘制用）
     public int x;
@@ -57,6 +59,21 @@ public abstract class Player {
 
     // 你的对手
     protected Player opponent;
+
+    public Player(GameEngine engine, MapManager mapManager, int startCol, int startRow) {
+        // 必须给这些赋值！！！
+        this.game = engine;
+        this.mapManager = mapManager;
+        this.col = startCol;
+        this.row = startRow;
+
+        // 初始化坐标
+        this.x = col * TILE_SIZE;
+        this.y = row * TILE_SIZE;
+        this.targetX = x;
+        this.targetY = y;
+
+    }
 
     public void setOpponent(Player opponent) {
         this.opponent = opponent;
@@ -139,7 +156,68 @@ public abstract class Player {
             animationFrame = 0;
             animationTimer = 0;
         }
+        checkPickup();
     }
+
+    public void checkPickup() {
+        if (game == null) return;
+        int tile = mapManager.getTile(col, row);
+
+        if (tile == 6) {
+            // 火焰 +5
+            ((GameInstance) game).addScore(5);
+            mapManager.setTile(col, row, 0);
+            spawnNewRandomItem();
+        } else if (tile == 7) {
+            // 红心 +10
+            ((GameInstance) game).addScore(10);
+            mapManager.setTile(col, row, 0);
+            spawnNewRandomItem();
+        } else if (tile == 8) {
+            // 紫心 -10
+            ((GameInstance) game).minusScore(10);
+            mapManager.setTile(col, row, 0);
+            spawnNewRandomItem();
+        }
+    }
+
+    private void spawnNewRandomItem() {
+        int r = 0, c = 0;
+        boolean found = false;
+
+        // 找一个空地（最多试50次，防止卡死）
+        for(int i=0; i<50; i++){
+            r = 2 + (int)(Math.random()*12);
+            c = 2 + (int)(Math.random()*12);
+
+            if(mapManager.getTile(r, c) == 0) {
+                found = true;
+                break;
+            }
+        }
+
+        if(!found) return;
+
+        // ==============================
+        // 概率设置（你想要的：毒药概率低）
+        // ==============================
+        double rand = Math.random();
+        int newItem;
+
+        if(rand < 0.82) {
+            newItem = 6;
+        }
+        else if(rand < 0.97) {
+            newItem = 7;
+        }
+        else {
+            newItem = 8;
+        }
+
+        mapManager.setTile(r, c, newItem);
+    }
+
+
 
     // 绘制
     public void draw(GameEngine engine) {

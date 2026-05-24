@@ -14,6 +14,7 @@ public class DestroyPlayer extends Player{
         this.x = startCol * TILE_SIZE;
         this.y = startRow * TILE_SIZE;
         isClearing = false;
+        isCasting = false;
 
         spriteSheet = engine.loadImage("resource/sprites/entities/P1.png");
     }

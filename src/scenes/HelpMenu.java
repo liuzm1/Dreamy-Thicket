@@ -13,7 +13,7 @@ public class HelpMenu implements GameScene{
             {195, 543,250,110}
     };
     public HelpMenu(GameEngine engine) {
-        helpMenu_Img = engine.loadImage("resource/sprites/menus/Help_bg.png");
+        helpMenu_Img = engine.loadImage("resource/sprites/menus/bg_Help_bg.png");
         helpTitle_broad = engine.loadImage("resource/sprites/menus/help_board.png");
         helpContent_broad = engine.loadImage("resource/sprites/menus/help_content.png");
     }

@@ -12,7 +12,7 @@ public class PauseMenu implements GameScene{
     public final Image paeseMenu_Img;
     private int[][] btnAreas = {{200,340,240,92}};//继续按钮;
     public PauseMenu(GameEngine engine) {
-        paeseMenu_Img = engine.loadImage("resource/sprites/menus/Pause_bg.png");
+        paeseMenu_Img = engine.loadImage("resource/sprites/menus/bg_Pause_bg.png");
     }
     @Override
     public void draw(GameEngine engine) {

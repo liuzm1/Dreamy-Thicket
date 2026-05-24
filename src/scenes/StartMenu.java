@@ -19,7 +19,7 @@ public class StartMenu implements GameScene{
     };
 
     public StartMenu(GameEngine engine) {
-        startMenu_Img = engine.loadImage("resource/sprites/menus/start_bg.png");
+        startMenu_Img = engine.loadImage("resource/sprites/menus/bg_start_bg.png");
     }
     //绘制界面和按钮悬浮
     @Override

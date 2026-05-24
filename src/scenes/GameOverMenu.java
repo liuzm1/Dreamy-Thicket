@@ -14,7 +14,7 @@ public class GameOverMenu implements GameScene{
     private int[][] btnAreas = {{200,340,240,92},};  //回到关卡选择
 
     public GameOverMenu(GameEngine engine) {
-        gameOverMunu_Image = engine.loadImage("resource/sprites/menus/GameOver_bg.png");
+        gameOverMunu_Image = engine.loadImage("resource/sprites/menus/bg_GameOver_bg.png");
     }
     @Override
     public void draw(GameEngine engine) {

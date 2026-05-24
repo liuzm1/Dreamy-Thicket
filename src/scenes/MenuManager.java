@@ -1,7 +1,7 @@
 package scenes;
 import core.GameEngine;
 import maps.MapManager;
-import ui.InGameUI;
+import ui.InGameUI_Button;
 
 public class MenuManager {
     public StartMenu startMenu;
@@ -10,7 +10,7 @@ public class MenuManager {
     public PauseMenu pauseMenu;
     public HelpMenu helpMenu;
     public GameOverMenu gameOverMenu;
-    public InGameUI inGameUI;
+    public InGameUI_Button inGameUIButton;
 
 
     public static final int STATE_START_MENU = 0;
@@ -31,7 +31,7 @@ public class MenuManager {
         pauseMenu = new PauseMenu(engine);
         helpMenu = new HelpMenu(engine);
         gameOverMenu = new GameOverMenu(engine);
-        inGameUI  = new InGameUI(engine);
+        inGameUIButton = new InGameUI_Button(engine);
 
         //初始状态指向主菜单
         activeScene = startMenu;
@@ -40,7 +40,7 @@ public class MenuManager {
     public void switchScene(int state) {
         switch(state) {
             case 0: activeScene = startMenu; break;
-            case 1: activeScene = inGameUI; break;
+            case 1: activeScene = inGameUIButton; break;
             case 2: activeScene = pauseMenu; break;
             case 3: activeScene = levelSelectMenu; break;
             case 4: activeScene = victoryMenu; break;
@@ -58,7 +58,7 @@ public class MenuManager {
 
         // 2. 特殊处理：如果是游戏中，额外画一层 InGameUI
         if (currentState == STATE_PLAYING) {
-            inGameUI.draw(engine); // 这样它就不用非得挤在 activeScene 变量里了
+            inGameUIButton.draw(engine); // 这样它就不用非得挤在 activeScene 变量里了
         }
 
 

@@ -1,11 +1,10 @@
 package ui;
 import core.GameEngine;
-import scenes.DrawSelector;
 import scenes.GameScene;
 
 import java.awt.*;
 
-public class InGameUI implements GameScene {
+public class InGameUI_Button implements GameScene {
     private final Image inGameHome_btn;
     private final Image inGamePause_btn;
     private final Image inGameResume_btn;
@@ -17,10 +16,10 @@ public class InGameUI implements GameScene {
             {490, 0, 45, 45}  //inGameResume_btn
     };
 
-    public InGameUI(GameEngine engine) {
-        inGameHome_btn = engine.loadImage("resource/sprites/menus/inGamehome_btn1.png");
-        inGamePause_btn = engine.loadImage("resource/sprites/menus/inGamepause_btn.png");
-        inGameResume_btn =  engine.loadImage("resource/sprites/menus/inGameReset_btn.png");
+    public InGameUI_Button(GameEngine engine) {
+        inGameHome_btn = engine.loadImage("resource/sprites/menus/btn_inGamehome_btn.png");
+        inGamePause_btn = engine.loadImage("resource/sprites/menus/btn_inGamepause_btn.png");
+        inGameResume_btn =  engine.loadImage("resource/sprites/menus/btn_inGameReset_btn.png");
         btn_bg = engine.loadImage("resource/sprites/menus/btn_bg.png");
     }
 

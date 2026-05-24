@@ -7,7 +7,7 @@ import java.awt.Image;
 public class LevelSelectMenu implements GameScene{
     private final Image levelSelectMenu_Img;
     public LevelSelectMenu(GameEngine engine) {
-        levelSelectMenu_Img = engine.loadImage("resource/sprites/menus/LevelSelect_bg.png");
+        levelSelectMenu_Img = engine.loadImage("resource/sprites/menus/bg_LevelSelect_bg.png");
     }
 
     private final int[][] btnAreas = {

@@ -18,7 +18,6 @@ public class MapManager {
     private final Image grassTileImg;
     private final Image stoneImg;  //石头障碍物 == 1
     private final Image vine; //藤蔓，不能走，但可以消除： 5
-    private final Image text;
     private final Image fire;
     private final Image heart_add;
     private final Image heart_poision;
@@ -32,7 +31,6 @@ public class MapManager {
         grassTileImg = engine.loadImage("resource/sprites/maps/map1.png");//0
         stoneImg = engine.loadImage("resource/sprites/maps/stone.png"); //1
         vine = engine.loadImage("resource/sprites/maps/vine.png");//5
-        text = engine.loadImage("resource/sprites/heart_poision.png");
         fire = engine.loadImage("resource/sprites/fire.png");
         heart_add = engine.loadImage("resource/sprites/heart_add.png");
         heart_poision = engine.loadImage("resource/sprites/heart_poision.png");

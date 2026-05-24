@@ -1,5 +1,7 @@
 package maps;
 
+import java.awt.*;
+
 public class CollisionCheck {
     MapManager mapManager;
     public CollisionCheck(MapManager mapManager) {

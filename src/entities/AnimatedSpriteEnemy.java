@@ -27,9 +27,13 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     protected int spriteRow = ROW_DOWN;
     protected int animationFrame = 0;
     protected double animationTimer = 0;
-
+    private Image[] Numbers;
     protected AnimatedSpriteEnemy(CollisionCheck collisionCheck, GameEngine engine, String spritePath) {
         super(collisionCheck);
+        Numbers = new Image[10];
+        for(int i = 0; i < 10; i++){
+            Numbers[i] = engine.loadImage("resource/sprites/menus/numbers/" + i +".png");
+        }
         spriteSheet = engine.loadImage(spritePath);
     }
 
@@ -68,12 +72,13 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
 
         Image frame = engine.subImage(spriteSheet, sx, sy, FRAME_W, FRAME_H);
         if (frame != null) {
-            engine.drawImage(frame, x, y, DRAW_SIZE, DRAW_SIZE);
+            engine.drawImage(frame, x-11, y-15, 52, 52);
         }
 
         if (isOnCooldown()) {
-            engine.changeColor(Color.RED);
-            engine.drawBoldText(x + 12, y + 6, String.valueOf(cooldownDisplay), "Arial", 20);
+            engine.changeColor(Color.white);
+            engine.drawSolidRectangle(x+10,y+10,20,20);
+            engine.drawImage(Numbers[cooldownDisplay], x-5, y-5, 45,45);
         }
     }
 }

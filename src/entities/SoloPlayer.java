@@ -8,13 +8,7 @@ import java.awt.Image;
 public class SoloPlayer extends Player {
 
     public SoloPlayer(GameEngine engine, MapManager mapManager, int startCol, int startRow) {
-        //人物站在的格子位置
-        this.mapManager = mapManager;
-        this.col = startCol;
-        this.row = startRow;
-        //人物站在的像素位置
-        this.x = startCol * TILE_SIZE;
-        this.y = startRow * TILE_SIZE;
+        super(engine, mapManager, startCol, startRow);
         isClearing = false;
         isCasting = false;
 

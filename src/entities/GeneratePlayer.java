@@ -5,8 +5,8 @@ import maps.CollisionCheck;
 import maps.MapManager;
 
 public class GeneratePlayer extends Player {
-
     public GeneratePlayer(GameEngine engine, MapManager mapManager, int startCol, int startRow) {
+        super(engine, mapManager, startCol, startRow);
         this.mapManager = mapManager;
         this.col = startCol;
         this.row = startRow;
@@ -42,12 +42,13 @@ public class GeneratePlayer extends Player {
             remainingVineGrids = 11;
             castTimer = 0;
         }
-    }
+    };
 
     @Override
     public void update(double dt) {
         super.update(dt);
 
+        // 处理延时逻辑
         if (isCasting || isClearing) {
             castTimer += dt;
             if (castTimer >= GROW_INTERVAL) {

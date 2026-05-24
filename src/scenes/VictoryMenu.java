@@ -31,9 +31,13 @@ public class VictoryMenu implements GameScene{
     }
     @Override
     public int handleMouseClick(int mx, int my) {
-        if(checkInside(mx, my, btnAreas[0])) return 1; //重新玩
-        if(checkInside(mx, my, btnAreas[1])) return 1; //下一关
-        if(checkInside(mx, my, btnAreas[3])) return 0;//主页按钮
+        // 重新玩：返回 1（重置当前关卡）
+        if(checkInside(mx, my, btnAreas[0])) return 1;
+        // 下一关：返回 2（进入下一关）
+        if(checkInside(mx, my, btnAreas[1])) return 2;
+        // 主页按钮：返回 0（回到主菜单）
+        if(checkInside(mx, my, btnAreas[2])) return 0;
+        // 无效点击，返回当前状态
         return 4;
     }
 

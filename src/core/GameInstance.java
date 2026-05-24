@@ -31,6 +31,43 @@ public class GameInstance extends GameEngine {
     private final MenuManager menuManager = new MenuManager(this);
     int currentLevel;
 
+    //-------------------------------------------------------
+    // Music and sfx
+    //-------------------------------------------------------
+    private AudioClip bgm_GamePlaying ;
+    private AudioClip bgm_Menu;
+    private AudioClip bgm_GameOver;
+    private AudioClip bgm_GameWin;
+    private AudioClip currentMusic = null;
+
+    private AudioClip sfx_UseSkill;
+
+    private void initMusic(){
+        bgm_Menu = loadAudio("resource/music/bgm_menu.wav");
+        bgm_GameOver = loadAudio("resource/music/sfx_game_over.wav");
+        bgm_GameWin = loadAudio("resource/music/sfx_game_win.wav");
+        bgm_GamePlaying = loadAudio("resource/music/bgm_gameplay.wav");
+        sfx_UseSkill = loadAudio("resource/sfx/magic.wav");
+    }
+
+    private void switchBGM(AudioClip newBGM){
+        if (currentMusic == newBGM) return; // 如果已经是这首歌了，别重复播
+
+        if (currentMusic != null) {
+            stopAudioLoop(currentMusic); // 停止上一首
+        }
+
+        if (newBGM != null) {
+            startAudioLoop(newBGM,-10f); // 循环播放新 BGM
+        }
+        currentMusic = newBGM;
+    }
+
+    public void playSkillSFX(AudioClip clip, float volumeDb){
+        if(clip != null){
+            playAudio(clip, volumeDb);
+        }
+    }
 
     //-------------------------------------------------------
     // Players
@@ -200,6 +237,7 @@ public class GameInstance extends GameEngine {
         if (!hasLivesRemaining()) {
             currentState = STATE_GAME_OVER;
             menuManager.switchScene(STATE_GAME_OVER);
+            switchBGM(bgm_GameOver);
         }
     }
 
@@ -257,6 +295,10 @@ public class GameInstance extends GameEngine {
         initPlayers();
 
         initKeys();
+
+        initMusic();
+        // 游戏一启动，默认在主菜单，直接播放主菜单音乐
+        switchBGM(bgm_Menu);
 
         resetSharedLives();
         setupEnemiesForLevel(1);
@@ -388,6 +430,9 @@ public class GameInstance extends GameEngine {
 
         // --- A. 进入新关卡 (从关卡选择界面点进来) ---
         if (nextState >= 100) {
+
+            switchBGM(bgm_GamePlaying);
+
             currentLevel = nextState; // 重点：把这个 101 记下来
             int levelNum = nextState - 100;
             if (isTwoPlayer && currentState == STATE_GAME_OVER) {
@@ -427,10 +472,16 @@ public class GameInstance extends GameEngine {
             if (isTwoPlayer) {
                 resetSharedLives();
             }
+
+            // 【注意】重新开始时，因为原本就在播 bgm_GamePlaying，switchBGM 内部有去重判断，不会打断重播，非常安全
+            switchBGM(bgm_GamePlaying);
         }
 
         // --- C. 从菜单返回游戏 ---
         else if (nextState == STATE_PLAYING && currentState != STATE_PLAYING) {
+            // 【切歌】如果是从别的页面（比如暂停）返回游戏，确保切回游戏音乐
+            switchBGM(bgm_GamePlaying);
+
             // 这种情况下通常不 reset 玩家，让他接着玩
             currentState = STATE_PLAYING;
             menuManager.switchScene(STATE_PLAYING);
@@ -444,6 +495,13 @@ public class GameInstance extends GameEngine {
                 destroyPlayer.reset(5, 5);
                 generatePlayer.reset(10, 10);
                 resetSharedLives();
+            }
+
+            // 【核心切歌控制】根据接下来的新状态，选择对应的音乐
+            if (nextState == STATE_START_MENU || nextState == STATE_LEVEL_SELECT || nextState == STATE_HELP) {
+                switchBGM(bgm_Menu); // 菜单、选关、帮助公用 bgm_Menu
+            } else if (nextState == STATE_VICTOR) {
+                switchBGM(bgm_GameWin);  // 赢了
             }
 
             currentState = nextState;
@@ -473,7 +531,6 @@ public class GameInstance extends GameEngine {
         return mouseY;
     }
 
-
     @Override
     public void keyPressed(java.awt.event.KeyEvent e) {
         int key = e.getKeyCode();
@@ -487,7 +544,9 @@ public class GameInstance extends GameEngine {
             if (key == KeyEvent.VK_Q) {
                 if (currentState == STATE_PLAYING && player1 != null) {
                     player1.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
                 }
+
             }
         }else{
             if (key == KeyEvent.VK_UP) up_P2 = true;
@@ -498,11 +557,13 @@ public class GameInstance extends GameEngine {
             if (key == KeyEvent.VK_Q) {
                 if (currentState == STATE_PLAYING && destroyPlayer != null) {
                     destroyPlayer.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
                 }
             }
             if(key == KeyEvent.VK_SPACE) {
                 if (currentState == STATE_PLAYING && generatePlayer != null) {
                     generatePlayer.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
                 }
             }
         }

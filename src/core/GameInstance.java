@@ -1,0 +1,707 @@
+package core;
+//游戏主类
+import entities.ChaseEnemy;
+import entities.DestroyPlayer;
+import entities.Enemy;
+import entities.GeneratePlayer;
+import entities.PatrolEnemy;
+import entities.Player;
+import entities.SoloPlayer;
+import entities.VineDestroyerEnemy;
+import maps.CollisionCheck;
+import scenes.GameScene;
+import maps.MapManager;
+import scenes.MenuManager;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+
+public class GameInstance extends GameEngine {
+    //定义窗口常量
+    private final int WINDOW_SIZE = 640;
+    //-------------------------------------------------------
+    //Maps
+    //-------------------------------------------------------
+    private final MapManager mapManager = new MapManager(this);
+    private CollisionCheck collisionCheck;
+    //-------------------------------------------------------
+    // Menus
+    //-------------------------------------------------------
+    private final MenuManager menuManager = new MenuManager(this);
+    int currentLevel;
+
+    //-------------------------------------------------------
+    // Music and sfx
+    //-------------------------------------------------------
+    private AudioClip bgm_GamePlaying ;
+    private AudioClip bgm_Menu;
+    private AudioClip bgm_GameOver;
+    private AudioClip bgm_GameWin;
+    private AudioClip currentMusic = null;
+
+    private AudioClip sfx_UseSkill;
+
+    // ====================== 物品 & 分数 & 倒计时 ======================
+    private int score = 0;
+    private float countdownTime = 60.0f;
+    private int targetScore = 80;
+    private boolean gameEnded = false;
+    private float winDelayTimer = 0;
+    public int animFrame = 0;
+
+    private void initMusic(){
+        bgm_Menu = loadAudio("resource/music/bgm_menu.wav");
+        bgm_GameOver = loadAudio("resource/music/sfx_game_over.wav");
+        bgm_GameWin = loadAudio("resource/music/sfx_game_win.wav");
+        bgm_GamePlaying = loadAudio("resource/music/bgm_gameplay.wav");
+        sfx_UseSkill = loadAudio("resource/sfx/magic.wav");
+    }
+
+    private void switchBGM(AudioClip newBGM){
+        if (currentMusic == newBGM) return; // 如果已经是这首歌了，别重复播
+
+        if (currentMusic != null) {
+            stopAudioLoop(currentMusic); // 停止上一首
+        }
+
+        if (newBGM != null) {
+            startAudioLoop(newBGM,-10f); // 循环播放新 BGM
+        }
+        currentMusic = newBGM;
+    }
+
+    public void playSkillSFX(AudioClip clip, float volumeDb){
+        if(clip != null){
+            playAudio(clip, volumeDb);
+        }
+    }
+
+    //-------------------------------------------------------
+    // Players
+    //-------------------------------------------------------
+    private SoloPlayer player1;
+    private GeneratePlayer generatePlayer;
+    private DestroyPlayer destroyPlayer;
+    //双人游戏状态
+    public boolean isTwoPlayer = false;
+    /** 双人模式共用生命（总共 3 条） */
+    private static final int MAX_LIVES = 3;
+    private int sharedLives = MAX_LIVES;
+    //玩家初始化
+    private void initPlayers(){
+        player1 = new SoloPlayer(this,mapManager, 5, 5); // 从 (5,5) 开始
+        destroyPlayer = new DestroyPlayer(this,mapManager, 5, 5);
+        generatePlayer = new GeneratePlayer(this,mapManager, 10, 10);
+        destroyPlayer.setOpponent(generatePlayer);
+        generatePlayer.setOpponent(destroyPlayer);
+    }
+    //-------------------------------------------------------
+    // Enemies
+    //-------------------------------------------------------
+    /** 第一关：中间行左右各一只巡逻怪（中间有石头隔开） */
+    private PatrolEnemy[] patrolEnemies;
+    /** 第二关：追踪最近玩家的敌人 */
+    private ChaseEnemy chaseEnemy;
+    /** 第三关：消除最近藤蔓的敌人 */
+    private VineDestroyerEnemy vineDestroyer;
+    /** 可行走区域中间行 (行 2~13 的中点) */
+    private static final int MIDDLE_PATROL_ROW = 7;
+    /** 第二、三关中间单只巡逻怪起始列 */
+    private static final int MIDDLE_PATROL_COL = 7;
+
+    private PatrolEnemy createMiddlePatrolEnemy() {
+        return new PatrolEnemy(this, collisionCheck, MIDDLE_PATROL_COL, MIDDLE_PATROL_ROW, 1);
+    }
+
+    private void setupEnemiesForLevel(int levelNum) {
+        patrolEnemies = null;
+        chaseEnemy = null;
+        vineDestroyer = null;
+
+        if (levelNum == 1) {
+            patrolEnemies = new PatrolEnemy[]{
+                    new PatrolEnemy(this, collisionCheck, 3, 3, -1),
+                    new PatrolEnemy(this, collisionCheck, 12, 12, 1)
+            };
+        } else if (levelNum == 2) {
+            patrolEnemies = new PatrolEnemy[]{
+                    new PatrolEnemy(this,collisionCheck,13,2,-1),
+                    new PatrolEnemy(this,collisionCheck,2,13,1)};
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 13, 7);
+        } else if (levelNum == 3) {
+            chaseEnemy = new ChaseEnemy(this, collisionCheck, 3, 10);
+            vineDestroyer = new VineDestroyerEnemy(this, collisionCheck, mapManager, 12, 5);
+        }
+    }
+
+    private void resetSharedLives() {
+        sharedLives = MAX_LIVES;
+    }
+
+    private Player[] getActivePlayers() {
+        if (!isTwoPlayer) {
+            return new Player[]{player1};
+        }
+        return new Player[]{destroyPlayer, generatePlayer};
+    }
+
+    private Enemy[] getAllEnemies() {
+        java.util.ArrayList<Enemy> list = new java.util.ArrayList<>();
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null) list.add(enemy);
+            }
+        }
+        if (chaseEnemy != null) list.add(chaseEnemy);
+        if (vineDestroyer != null) list.add(vineDestroyer);
+        return list.toArray(new Enemy[0]);
+    }
+
+    private void syncEnemyPeers() {
+        Enemy[] all = getAllEnemies();
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                if (enemy != null) enemy.setPeerEnemies(all);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.setPeerEnemies(all);
+        }
+        if (vineDestroyer != null) {
+            vineDestroyer.setPeerEnemies(all);
+        }
+    }
+
+    private void updateEnemies(double dt) {
+        syncEnemyPeers();
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                enemy.update(dt);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.update(dt, getActivePlayers());
+        }
+        if (vineDestroyer != null) {
+            vineDestroyer.update(dt);
+        }
+    }
+
+    private void drawEnemies() {
+        if (patrolEnemies != null) {
+            for (PatrolEnemy enemy : patrolEnemies) {
+                enemy.draw(this);
+            }
+        }
+        if (chaseEnemy != null) {
+            chaseEnemy.draw(this);
+        }
+        if (vineDestroyer != null) {
+            vineDestroyer.draw(this);
+        }
+    }
+
+    /** 玩家与敌人同格则减命；仅碰撞的那只敌人进入 5→0 倒计时 */
+    private void checkEnemyPlayerCollisions() {
+        for (Player player : getActivePlayers()) {
+            if (player == null) continue;
+            if (!isTwoPlayer && !player.isAlive()) continue;
+            if (isTwoPlayer && sharedLives <= 0) continue;
+
+            if (patrolEnemies != null) {
+                for (PatrolEnemy enemy : patrolEnemies) {
+                    if (enemy != null && !enemy.isOnCooldown() && isSameGrid(enemy, player)) {
+                        onPlayerHitEnemy(player, enemy);
+                        return;
+                    }
+                }
+            }
+            if (chaseEnemy != null && !chaseEnemy.isOnCooldown()
+                    && isSameGrid(chaseEnemy, player)) {
+                onPlayerHitEnemy(player, chaseEnemy);
+                return;
+            }
+            if (vineDestroyer != null && !vineDestroyer.isOnCooldown()
+                    && isSameGrid(vineDestroyer, player)) {
+                onPlayerHitEnemy(player, vineDestroyer);
+                return;
+            }
+        }
+    }
+
+    private boolean isSameGrid(Enemy enemy, Player player) {
+        return enemy.col == player.col && enemy.row == player.row;
+    }
+
+    private void onPlayerHitEnemy(Player player, Enemy hitter) {
+        if (isTwoPlayer) {
+            if (sharedLives > 0) sharedLives--;
+        } else {
+            player.takeDamage();
+        }
+        hitter.startCooldown();
+
+        if (!hasLivesRemaining()) {
+            currentState = STATE_GAME_OVER;
+            menuManager.switchScene(STATE_GAME_OVER);
+            switchBGM(bgm_GameOver);
+        }
+    }
+
+    private boolean hasLivesRemaining() {
+        if (isTwoPlayer) {
+            return sharedLives > 0;
+        }
+        return player1 != null && player1.isAlive();
+    }
+
+    private void drawPlayerLives() {
+        changeColor(Color.RED);
+        if (!isTwoPlayer) {
+            if (player1 != null) {
+                drawBoldText(10, 120, "Live: " + player1.getHp(), "Arial", 28);
+            }
+        } else {
+            drawBoldText(10, 120, "Live: " + sharedLives, "Arial", 28);
+        }
+    }
+
+
+
+    //-------------------------------------------------------
+    // Items
+    //-------------------------------------------------------
+
+
+
+
+    //-------------------------------------------------------
+    // keys
+    //-------------------------------------------------------
+    //记录按键状态
+    private boolean left, right, up, down;
+    private boolean left_P2, right_P2, up_P2, down_P2;
+    //按键初始化
+    private void initKeys(){
+        // 初始状态下按键都是 false
+        left = right = up = down = false;
+        left_P2 = right_P2 = up_P2 = down_P2 = false;
+    }
+
+
+
+
+    //-------------------------------------------------------
+    // Game
+    //-------------------------------------------------------
+    @Override
+    public void init() {
+        currentLevel = 101;
+        collisionCheck = new maps.CollisionCheck(mapManager);
+        //====【玩家初始化加载中...】====
+        initPlayers();
+
+        initKeys();
+
+        initMusic();
+        // 游戏一启动，默认在主菜单，直接播放主菜单音乐
+        switchBGM(bgm_Menu);
+
+        resetSharedLives();
+        setupEnemiesForLevel(1);
+    }
+
+    // 修改 update 逻辑，让按键直接生效
+    // 修改 update 逻辑，让按键直接生效
+    @Override
+    public void update(double dt) {
+        if (currentState == STATE_PLAYING) {
+
+            // ====================== 【新加入：倒计时】 ======================
+            countdownTime -= dt;
+            if (countdownTime <= 0) {
+                countdownTime = 0;
+                currentState = STATE_GAME_OVER;
+                menuManager.switchScene(STATE_GAME_OVER);
+                switchBGM(bgm_GameOver);
+            }
+
+            // ====================== 你原来的玩家移动逻辑（完全不动） ======================
+            if(!isTwoPlayer) {
+                if(player1 != null) {
+                    player1.setEnemies(getAllEnemies());
+                    player1.update(dt);
+                    // 直接根据按键状态调用 move
+                    if (up) player1.move(0, -1, collisionCheck,null);
+                    if (down) player1.move(0, 1, collisionCheck,null);
+                    if (left) player1.move(-1, 0, collisionCheck,null);
+                    if (right) player1.move(1, 0, collisionCheck,null);
+                }
+            }else{
+                if(destroyPlayer != null) {
+                    destroyPlayer.update(dt);
+                    // 直接根据按键状态调用 move
+                    if (up) destroyPlayer.move(0, -1, collisionCheck,generatePlayer);
+                    if (down) destroyPlayer.move(0, 1, collisionCheck,generatePlayer);
+                    if (left) destroyPlayer.move(-1, 0, collisionCheck,generatePlayer);
+                    if (right) destroyPlayer.move(1, 0, collisionCheck,generatePlayer);
+                }
+                if(generatePlayer != null) {
+                    generatePlayer.setEnemies(getAllEnemies());
+                    generatePlayer.update(dt);
+                    if (up_P2) generatePlayer.move(0, -1, collisionCheck,destroyPlayer);
+                    if (down_P2) generatePlayer.move(0, 1, collisionCheck,destroyPlayer);
+                    if (left_P2) generatePlayer.move(-1, 0, collisionCheck,destroyPlayer);
+                    if (right_P2) generatePlayer.move(1, 0, collisionCheck,destroyPlayer);
+                }
+            }
+
+            // ====================== 你原来的敌人逻辑（完全不动） ======================
+            updateEnemies(dt);
+            checkEnemyPlayerCollisions();
+
+            // ====================== 【新加入：动画帧】 ======================
+            animFrame++;
+
+            // ====================== 【新加入：物品拾取检测】 ======================
+            if (!isTwoPlayer) {
+                if (player1 != null) {
+                    mapManager.checkItemPickup(player1.col, player1.row, this);
+                }
+            } else {
+                if (destroyPlayer != null) {
+                    mapManager.checkItemPickup(destroyPlayer.col, destroyPlayer.row, this);
+                }
+                if (generatePlayer != null) {
+                    mapManager.checkItemPickup(generatePlayer.col, generatePlayer.row, this);
+                }
+            }
+
+            // ====================== 【新加入：胜利判断】 ======================
+            if (score >= targetScore) {
+                winDelayTimer += dt;
+                if (winDelayTimer >= 1.0f) {
+                    currentState = STATE_VICTOR;
+                    menuManager.switchScene(STATE_VICTOR);
+                    switchBGM(bgm_GameWin);
+                    winDelayTimer = 0;
+                }
+            }
+        }
+    }
+
+    public void addScore(int value) { score += value; }
+    public void resetScoreAndTime() {
+        score = 0;
+        countdownTime = 60.0f;
+        winDelayTimer = 0;
+        gameEnded = false;
+    }
+
+    // 根据关卡号自动设置目标分数
+    public void setTargetScoreByLevel(int levelNum) {
+        if (levelNum == 1) targetScore = 80;
+        else if (levelNum == 2) targetScore = 120;
+        else if (levelNum == 3) targetScore = 160;
+        else targetScore = 80;
+    }
+
+
+    private void drawDebugGrid() {
+        changeColor(Color.white);
+        for (int i = 0; i <= WINDOW_SIZE; i += 40) {
+            drawLine(i, 0, i, WINDOW_SIZE); // 画竖线
+            drawLine(0, i, WINDOW_SIZE, i); //画横线
+        }
+    }
+
+    @Override
+    public void paintComponent() {
+        changeColor(Color.BLACK);
+        drawSolidRectangle(0, 0, 640, 640);
+
+        // 2. 先画菜单和地图
+        menuManager.drawActiveMenu(this, currentState, mapManager);
+
+        // 3. 只有在游戏中才画
+        if (currentState == STATE_PLAYING) {
+            if(!isTwoPlayer) {
+                if(player1 != null) player1.draw(this);
+            }else{
+                if(destroyPlayer != null) destroyPlayer.draw(this);
+                if(generatePlayer != null) generatePlayer.draw(this);
+            }
+            drawEnemies();
+            drawPlayerLives();
+
+            //辅助网格 最后要删除
+            drawDebugGrid();
+
+            // ====================== 分数、目标、倒计时 UI（已整合进来） ======================
+            changeColor(Color.WHITE);
+            drawBoldText(10, 30, "Score: " + score);            // 分数
+            drawBoldText(10, 75, "Target: " + targetScore);    // 目标分数
+            drawBoldText(10, 590, "Time: " + (int) countdownTime); // 倒计时
+
+            // 鼠标坐标
+            int mx = getMouseX();
+            int my = getMouseY();
+            changeColor(Color.YELLOW);
+            drawBoldText(10, 625, "(" + (mx/40) + " , " + (my/40 ) + ")");
+        }
+    }
+
+    // 在 GameInstance 类内部添加
+    private int mouseX, mouseY;
+    // 覆写鼠标移动方法，实时更新坐标变量
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
+    }
+
+
+    //-------------------------------------------------------
+    // 定义游戏状态常量
+    //-------------------------------------------------------
+    private final int STATE_START_MENU = 0;
+    private final int STATE_PLAYING = 1;
+    private final int STATE_PAUSED = 2;
+    private final int STATE_LEVEL_SELECT = 3;
+    private final int STATE_VICTOR = 4;
+    private final int STATE_GAME_OVER = 5;
+    private final int STATE_HELP = 6;
+    private int currentState = STATE_START_MENU; // 默认在主菜单
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        int mx = e.getX();
+        int my = e.getY();
+
+        // 1. 根据当前状态找到对应的菜单界面
+        GameScene currentScene = (currentState == STATE_PLAYING) ? menuManager.inGameUI : getActiveMenu();
+
+        if (currentScene == null) return;
+
+        // 2. 获取点击后的下一个状态
+        int nextState = currentScene.handleMouseClick(mx, my);
+        if (currentState == STATE_START_MENU) {
+            isTwoPlayer = menuManager.startMenu.getIsTwoPlayer();
+        }
+        if (nextState == -1) return; // 无效点击直接返回
+
+        // ==============================================
+        // 【新增】专门处理胜利界面的按钮逻辑
+        // ==============================================
+        if (currentState == STATE_VICTOR) {
+            // 1 = 重新玩当前关卡
+            if (nextState == 1) {
+                resetScoreAndTime();
+                int levelNum = currentLevel - 100;
+                mapManager.loadLevel("resource/map" + levelNum + ".txt");
+                if (!isTwoPlayer) {
+                    if (player1 != null) player1.reset(5, 5);
+                } else {
+                    if (destroyPlayer != null) destroyPlayer.reset(5, 5);
+                    if (generatePlayer != null) generatePlayer.reset(10, 10);
+                }
+                setupEnemiesForLevel(levelNum);
+                currentState = STATE_PLAYING;
+                menuManager.switchScene(STATE_PLAYING);
+                switchBGM(bgm_GamePlaying);
+            }
+            // 2 = 下一关
+            else if (nextState == 2) {
+                resetScoreAndTime();
+                int levelNum = currentLevel - 100;
+                levelNum++;
+                if (levelNum > 3) levelNum = 1;
+                currentLevel = 100 + levelNum;
+
+                mapManager.loadLevel("resource/map" + levelNum + ".txt");
+                if (levelNum == 1) targetScore = 80;
+                else if (levelNum == 2) targetScore = 120;
+                else if (levelNum == 3) targetScore = 160;
+
+                if (!isTwoPlayer) {
+                    if (player1 != null) player1.reset(5, 5);
+                } else {
+                    if (destroyPlayer != null) destroyPlayer.reset(5, 5);
+                    if (generatePlayer != null) generatePlayer.reset(10, 10);
+                }
+                setupEnemiesForLevel(levelNum);
+                currentState = STATE_PLAYING;
+                menuManager.switchScene(STATE_PLAYING);
+                switchBGM(bgm_GamePlaying);
+            }
+            // 0 = 返回主菜单
+            else if (nextState == 0) {
+                resetScoreAndTime();
+                currentState = STATE_START_MENU;
+                menuManager.switchScene(STATE_START_MENU);
+                switchBGM(bgm_Menu);
+            }
+            return;
+        }
+
+        // 3. 分支处理（你原来的逻辑完全保留）
+        // --- A. 进入新关卡 (从关卡选择界面点进来) ---
+        if (nextState >= 100) {
+            // 无论当前处于什么状态（包括 GAME_OVER），都强制重置所有状态
+            resetScoreAndTime();
+            switchBGM(bgm_GamePlaying);
+            currentLevel = nextState;
+            int levelNum = nextState - 100;
+            setTargetScoreByLevel(levelNum);  // <-- 加这一行
+            if (isTwoPlayer && currentState == STATE_GAME_OVER) {
+                resetSharedLives();
+            }
+            mapManager.loadLevel("resource/map" + levelNum + ".txt");
+
+            // 重置玩家
+            if (!isTwoPlayer) {
+                if (player1 != null) player1.reset(5, 5);
+            } else {
+                if (destroyPlayer != null) destroyPlayer.reset(5, 5);
+                if (generatePlayer != null) generatePlayer.reset(10, 10);
+            }
+            setupEnemiesForLevel(levelNum);
+            // 强制把状态切回游戏中，避免停留在 GAME_OVER
+            currentState = STATE_PLAYING;
+            menuManager.switchScene(STATE_PLAYING);
+        }
+
+        // --- B. 重新开始当前关卡 (在游戏中点击了重置) ---
+        else if (nextState == STATE_PLAYING && currentState == STATE_PLAYING) {
+            resetScoreAndTime();
+            int levelNum = currentLevel - 100;
+            setTargetScoreByLevel(levelNum);  // <-- 加这一行
+            mapManager.loadLevel("resource/map" + levelNum + ".txt");
+            if (!isTwoPlayer) {
+                if (player1 != null) player1.reset(5, 5);
+            } else {
+                if (destroyPlayer != null) destroyPlayer.reset(5, 5);
+                if (generatePlayer != null) generatePlayer.reset(10, 10);
+            }
+            setupEnemiesForLevel(levelNum);
+            if (isTwoPlayer) {
+                resetSharedLives();
+            }
+            switchBGM(bgm_GamePlaying);
+        }
+
+        // --- C. 从菜单返回游戏 ---
+        else if (nextState == STATE_PLAYING && currentState != STATE_PLAYING) {
+            switchBGM(bgm_GamePlaying);
+            currentState = STATE_PLAYING;
+            menuManager.switchScene(STATE_PLAYING);
+        }
+
+        // --- D. 普通页面切换 (主菜单、帮助、暂停等) ---
+        else if (nextState != currentState) {
+            if (nextState == STATE_START_MENU && player1 != null) {
+                player1.reset(5, 5);
+                destroyPlayer.reset(5, 5);
+                generatePlayer.reset(10, 10);
+                resetSharedLives();
+            }
+
+            if (nextState == STATE_START_MENU || nextState == STATE_LEVEL_SELECT || nextState == STATE_HELP) {
+                switchBGM(bgm_Menu);
+            } else if (nextState == STATE_VICTOR) {
+                switchBGM(bgm_GameWin);
+            }
+
+            currentState = nextState;
+            menuManager.switchScene(nextState);
+        }
+    }
+
+    // 辅助方法：把原来的 switch 提出来，让主方法变干净
+    private GameScene getActiveMenu() {
+        switch (currentState) {
+            case STATE_START_MENU:   return menuManager.startMenu;
+            case STATE_PAUSED:       return menuManager.pauseMenu;
+            case STATE_LEVEL_SELECT: return menuManager.levelSelectMenu;
+            case STATE_VICTOR:       return menuManager.victoryMenu;
+            case STATE_GAME_OVER:    return menuManager.gameOverMenu;
+            case STATE_HELP:         return menuManager.helpMenu;
+            default: return null;
+        }
+    }
+
+    // 补充两个获取方法，供菜单判断使用
+    public int getMouseX() {
+        return mouseX;
+    }
+
+    public int getMouseY() {
+        return mouseY;
+    }
+
+    @Override
+    public void keyPressed(java.awt.event.KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == KeyEvent.VK_W) up = true;
+        if (key == KeyEvent.VK_S) down = true;
+        if (key == KeyEvent.VK_A) left = true;
+        if (key == KeyEvent.VK_D) right = true;
+
+        // 技能按键：空格
+        if(!isTwoPlayer) {
+            if (key == KeyEvent.VK_Q) {
+                if (currentState == STATE_PLAYING && player1 != null) {
+                    player1.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
+                }
+
+            }
+        }else{
+            if (key == KeyEvent.VK_UP) up_P2 = true;
+            if (key == KeyEvent.VK_DOWN) down_P2 = true;
+            if (key == KeyEvent.VK_LEFT) left_P2 = true;
+            if (key == KeyEvent.VK_RIGHT) right_P2 = true;
+
+            if (key == KeyEvent.VK_Q) {
+                if (currentState == STATE_PLAYING && destroyPlayer != null) {
+                    destroyPlayer.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
+                }
+            }
+            if(key == KeyEvent.VK_SPACE) {
+                if (currentState == STATE_PLAYING && generatePlayer != null) {
+                    generatePlayer.useSkill(mapManager);
+                    playSkillSFX(sfx_UseSkill,-10f);
+                }
+            }
+        }
+
+
+    }
+    @Override
+    public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+        // P1 松开
+        if (key == KeyEvent.VK_W) up = false;
+        if (key == KeyEvent.VK_S) down = false;
+        if (key == KeyEvent.VK_A) left = false;
+        if (key == KeyEvent.VK_D) right = false;
+
+        // P2 松开
+        if (key == KeyEvent.VK_UP)    up_P2 = false;
+        if (key == KeyEvent.VK_DOWN)  down_P2 = false;
+        if (key == KeyEvent.VK_LEFT)  left_P2 = false;
+        if (key == KeyEvent.VK_RIGHT) right_P2 = false;
+    }
+
+
+
+
+}

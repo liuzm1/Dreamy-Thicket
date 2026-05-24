@@ -29,14 +29,12 @@ public class UI {
         }
 
         // 2. 得分
-        engine.changeColor(Color.YELLOW);
-        engine.drawText(640 - 150, startY + 25, "SCORE: " + score, "Arial", 26);
+        engine.drawText(640 - 150, startY + 25, "SCORE: " + score, "Arial", 30);
 
         // 3. 倒计时
         int minutes = (int) (timeLeft / 60);
         int seconds = (int) (timeLeft % 60);
         String timeStr = String.format("%02d:%02d", minutes, seconds);
-        engine.changeColor(Color.CYAN);
-        engine.drawText(280, startY + 25, timeStr, "Arial", 32);
+        engine.drawText(280, startY + 25, timeStr, "Arial", 35);
     }
 }

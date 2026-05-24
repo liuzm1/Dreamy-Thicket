@@ -1,5 +1,6 @@
 package ui;
 
+import core.GameEngine;
 import core.GameInstance;
 import maps.MapManager;
 import entities.SoloPlayer;
@@ -136,5 +137,9 @@ public class UIGameInstance extends GameInstance {
                 gameUI.draw(this, hp, score, timeLeft);
             }
         }
+    }
+
+    public static void main(String[] args) {
+        GameEngine.createGame(new UIGameInstance(), 60);
     }
 }

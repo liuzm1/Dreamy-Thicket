@@ -183,20 +183,25 @@ public abstract class Player {
         int tile = mapManager.getTile(col, row);
 
         if (tile == 6) {
+            ((GameInstance) game).getAudioManager().playItemPickSFX();
             // 火焰 +5
             ((GameInstance) game).addScore(5);
             mapManager.setTile(col, row, 0);
             spawnNewRandomItem();
         } else if (tile == 7) {
+            ((GameInstance) game).getAudioManager().playItemPickAddSFX();
             // 红心 +10
             ((GameInstance) game).addScore(10);
             mapManager.setTile(col, row, 0);
             spawnNewRandomItem();
         } else if (tile == 8) {
-            // 紫心 -10
-            ((GameInstance) game).minusScore(10);
-            mapManager.setTile(col, row, 0);
-            spawnNewRandomItem();
+            ((GameInstance) game).getAudioManager().playItemPickPoison();
+            // 紫心 -30
+            if(((GameInstance) game).getScore() >= 0) {
+                ((GameInstance) game).minusScore(30);
+            }
+                mapManager.setTile(col, row, 0);
+                spawnNewRandomItem();
         }
     }
 
@@ -223,10 +228,10 @@ public abstract class Player {
         double rand = Math.random();
         int newItem;
 
-        if(rand < 0.82) {
+        if(rand < 0.80) {
             newItem = 6;
         }
-        else if(rand < 0.97) {
+        else if(rand < 0.95) {
             newItem = 7;
         }
         else {
@@ -234,6 +239,8 @@ public abstract class Player {
         }
 
         mapManager.setTile(r, c, newItem);
+
+
     }
 
 

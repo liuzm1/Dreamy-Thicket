@@ -30,7 +30,7 @@ public abstract class Enemy {
     protected double cooldownTimer = 0;
     private static final double COOLDOWN_TICK = 1.0;
     /** 碰撞后原地停顿秒数（头顶倒计时 5→1） */
-    private static final int COOLDOWN_SECONDS = 5;
+    private static final int COOLDOWN_SECONDS = 2;
 
     protected Enemy(CollisionCheck collisionCheck) {
         this.collisionCheck = collisionCheck;

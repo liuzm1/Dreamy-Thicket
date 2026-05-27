@@ -38,7 +38,7 @@ public class MapManager {
 
     private void generateItems() {
         int spawned = 0;
-        int maxItems = 10; // 固定生成10个道具
+        int maxItems = 7; // 固定生成10个道具
 
         // 防止死循环，最多循环100次
         int attempts = 0;
@@ -53,9 +53,9 @@ public class MapManager {
             if (mapData[r][c] == 0) {
                 // 随机三种道具：6=火+10、7=心+5、8=毒-5
                 double rand = Math.random();
-                if (rand < 0.82) {
+                if (rand < 0.80) {
                     mapData[r][c] = 6;
-                } else if (rand < 0.97) {
+                } else if (rand < 0.95) {
                     mapData[r][c] = 7;
                 } else {
                     mapData[r][c] = 8;
@@ -64,6 +64,7 @@ public class MapManager {
             }
         }
     }
+
 
 
     // 封装读取逻辑

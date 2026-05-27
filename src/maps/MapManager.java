@@ -18,9 +18,9 @@ public class MapManager {
     private final Image grassTileImg;
     private final Image stoneImg;  //石头障碍物 == 1
     private final Image vine; //藤蔓，不能走，但可以消除： 5
-    private final Image fire;
-    private final Image heart_add;
-    private final Image heart_poision;
+    private final Image ruby;
+    private final Image star;
+    private final Image oracle;
     //private final Image TEST;
 
     public MapManager(GameEngine engine) {
@@ -31,9 +31,9 @@ public class MapManager {
         grassTileImg = engine.loadImage("resource/sprites/maps/map1.png");//0
         stoneImg = engine.loadImage("resource/sprites/maps/stone.png"); //1
         vine = engine.loadImage("resource/sprites/maps/vine.png");//5
-        fire = engine.loadImage("resource/sprites/fire.png");
-        heart_add = engine.loadImage("resource/sprites/heart_add.png");
-        heart_poision = engine.loadImage("resource/sprites/heart_poision.png");
+        ruby = engine.loadImage("resource/sprites/Items/ruby.png");
+        star = engine.loadImage("resource/sprites/Items/star.png");
+        oracle = engine.loadImage("resource/sprites/Items/oracle.png");
     }
 
     private void generateItems() {
@@ -105,20 +105,19 @@ public class MapManager {
                 //障碍物
                 if (type == 1) engine.drawImage(stoneImg, px+4, py+4, TILE_SIZE-8, TILE_SIZE-8);
                 else if(type == 5) engine.drawImage(vine, px+2, py+2, 35, 35);
-                else if(type == 5) engine.drawImage(vine, px-5, py-8, 43, 40);
                 // 道具：加分道具
                 else if (type == 6) {
                     offset = (float)Math.sin(frame) * 3f;
-                    engine.drawImage(fire, px + 4, py + 4 + offset, 39, 39);
+                    engine.drawImage(ruby, px + 4, py + 1 + offset, 39, 39);
                 }
                 else if (type == 7) {
                     offset = (float)Math.sin(frame + 1.2) * 2.5f;
-                    engine.drawImage(heart_add, px + 4, py + 4 + offset, 35, 35);
+                    engine.drawImage(star, px + 4, py + 1 + offset, 35, 35);
                 }
                 // 道具：减分道具（仅开局显示）
                 else if (type == 8) {
                     offset = (float)Math.sin(frame + 2.4) * 2f;
-                    engine.drawImage(heart_poision, px + 4, py + 4 + offset, 32, 32);
+                    engine.drawImage(oracle, px + 4, py + 1 + offset, 32, 32);
                 }
             }
         }

@@ -182,6 +182,10 @@ public class GameInstance extends GameEngine {
         countdownTime = 90.0f;
         gameEnded = false;
         winDelayTimer = 0;
+        resetSharedLives();
+        if (player1 != null) {
+            // 确保单人角色的HP也恢复满（根据你Player类里 reset 的设计，下面 resetPlayersToSpawn 会处理，这里加个保险）
+        }
     }
 
     @Override

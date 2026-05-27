@@ -31,14 +31,9 @@ public class EnemyManager {
             };
         } else if (levelNum == 2) {
             // 【第二关】2个自动追击怪 + 1个横向平移怪
-            patrolEnemies = new PatrolEnemy[]{
-                    new PatrolEnemy(game, collisionCheck, 6, 3, 1),
-                    new PatrolEnemy(game, collisionCheck, 9, 12, -1)
-                    // 平移怪 C (7, 7)
-            };
             chaseEnemies = new ChaseEnemy[]{
-                    new ChaseEnemy(game, collisionCheck, 3, 5),      // 追击怪 A (2, 13)
-                    new ChaseEnemy(game, collisionCheck, 12, 9)      // 追击怪 B (13, 13)
+                    new ChaseEnemy(game, collisionCheck, 13, 2),      // 追击怪 A (2, 13)
+                    new ChaseEnemy(game, collisionCheck, 2, 13)      // 追击怪 B (13, 13)
             };
         } else if (levelNum == 3) {
             // 【第三关】1个自动追击怪 + 2个消除藤蔓怪

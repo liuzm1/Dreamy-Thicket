@@ -32,7 +32,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
 
-    private static final int VINE_MOVE_SPEED = 20;
+    private static final int VINE_MOVE_SPEED = 25;
 
     private static final int GRID_COUNT = 16;
 
@@ -71,41 +71,26 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
     @Override
-
     public void update(double dt) {
-
         if (isOnCooldown()) {
-
             updateCooldown(dt);
-
             return;
-
         }
-
-
 
         if (!isMoving) {
+            // 【核心修正】将 if (!tryDestroyAdjacentVine()) 拆开
+            // 让它在尝试消除相邻藤蔓之后，不管有没有消成功，只要当前还没动，就立刻寻找新目标
+            tryDestroyAdjacentVine();
 
-            if (!tryDestroyAdjacentVine()) {
-
-                int[] nearestVine = findNearestVine();
-
-                if (nearestVine != null) {
-
-                    tryMoveTowardVine(nearestVine[0], nearestVine[1]);
-
-                }
-
+            // 消除完（或身边没有）之后，立刻在大地图重新搜寻最迫近的目标藤蔓
+            int[] nearestVine = findNearestVine();
+            if (nearestVine != null) {
+                tryMoveTowardVine(nearestVine[0], nearestVine[1]);
             }
-
         }
 
-
-
         updateWalkAnimation(dt);
-
         updateSmoothMovement(dt);
-
     }
 
 

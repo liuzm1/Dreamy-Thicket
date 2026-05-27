@@ -25,8 +25,8 @@ public class LevelManager {
         mapManager.loadLevel("resource/map" + levelNum + ".txt");
 
         // 绑定不同关卡目标分数
-        if (levelNum == 1)      game.setTargetScore(80);
-        else if (levelNum == 2) game.setTargetScore(120);
+        if (levelNum == 1)      game.setTargetScore(150);
+        else if (levelNum == 2) game.setTargetScore(200);
         else if (levelNum == 3) game.setTargetScore(160);
 
         enemyManager.setupEnemiesForLevel(levelNum, collisionCheck);

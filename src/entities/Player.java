@@ -196,9 +196,14 @@ public abstract class Player {
             spawnNewRandomItem();
         } else if (tile == 8) {
             ((GameInstance) game).getAudioManager().playItemPickPoison();
-            // 紫心 -30
-            if(((GameInstance) game).getScore() >= 0) {
-                ((GameInstance) game).minusScore(30);
+            double rand = Math.random();
+            if(rand < 0.55){
+                // 紫心 -30
+                if(((GameInstance) game).getScore() >= 0) {
+                    ((GameInstance) game).minusScore(30);
+                }
+            }else{
+                ((GameInstance) game).addScore(30);
             }
                 mapManager.setTile(col, row, 0);
                 spawnNewRandomItem();
@@ -228,10 +233,10 @@ public abstract class Player {
         double rand = Math.random();
         int newItem;
 
-        if(rand < 0.80) {
+        if(rand < 0.94) {
             newItem = 6;
         }
-        else if(rand < 0.95) {
+        else if(rand < 0.97) {
             newItem = 7;
         }
         else {

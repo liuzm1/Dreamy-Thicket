@@ -1,3 +1,16 @@
+/**
+        * ---------------------------------------------------------------------------
+        * Massey University - 159.261 Games Programming
+        * Assignment 2
+        * ---------------------------------------------------------------------------
+        * * [Dreamy Forest]
+        * * Team Members:
+        * - LIU ZIMO (ID:24009362)
+        * - MIAO CHONG (ID: 24008986)
+        * - SUN MINGYI (ID: 24009239)
+        * - ZHOU XUAN (ID: 24009035)
+        * ---------------------------------------------------------------------------
+ **/
 package core;
 
 import entities.*;
@@ -13,7 +26,6 @@ import java.awt.event.MouseEvent;
 
 public class GameInstance extends GameEngine {
     public int animFrame = 0;
-    private final int WINDOW_SIZE = 640;
 
     // ====================== 模块化管理器驱动 ======================
     private AudioManager audioManager;
@@ -191,7 +203,8 @@ public class GameInstance extends GameEngine {
     @Override
     public void paintComponent() {
         changeColor(Color.BLACK);
-        drawSolidRectangle(0, 0, 640, 640);
+        int WINDOW_SIZE = 640;
+        drawSolidRectangle(0, 0, WINDOW_SIZE, WINDOW_SIZE);
 
         menuManager.drawActiveMenu(this, currentState.toInt(), mapManager);
 
@@ -303,15 +316,15 @@ public class GameInstance extends GameEngine {
     }
 
     private GameScene getActiveMenu() {
-        switch (currentState) {
-            case START_MENU:   return menuManager.startMenu;
-            case PAUSED:       return menuManager.pauseMenu;
-            case LEVEL_SELECT: return menuManager.levelSelectMenu;
-            case VICTOR:       return menuManager.victoryMenu;
-            case GAME_OVER:    return menuManager.gameOverMenu;
-            case HELP:         return menuManager.helpMenu;
-            default: return null;
-        }
+        return switch (currentState) {
+            case START_MENU -> menuManager.startMenu;
+            case PAUSED -> menuManager.pauseMenu;
+            case LEVEL_SELECT -> menuManager.levelSelectMenu;
+            case VICTOR -> menuManager.victoryMenu;
+            case GAME_OVER -> menuManager.gameOverMenu;
+            case HELP -> menuManager.helpMenu;
+            default -> null;
+        };
     }
 
     private int mouseX, mouseY;

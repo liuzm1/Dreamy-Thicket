@@ -1,3 +1,16 @@
+/**
+ * ---------------------------------------------------------------------------
+ * Massey University - 159.261 Games Programming
+ * Assignment 2
+ * ---------------------------------------------------------------------------
+ * * [Dreamy Forest]
+ * * Team Members:
+ * - LIU ZIMO (ID:24009362)
+ * - MIAO CHONG (ID: 24008986)
+ * - SUN MINGYI (ID: 24009239)
+ * - ZHOU XUAN (ID: 24009035)
+ * ---------------------------------------------------------------------------
+ **/
 package core;
 
 import maps.MapManager;
@@ -27,7 +40,7 @@ public class LevelManager {
         // 绑定不同关卡目标分数
         if (levelNum == 1)      game.setTargetScore(150);
         else if (levelNum == 2) game.setTargetScore(200);
-        else if (levelNum == 3) game.setTargetScore(160);
+        else if (levelNum == 3) game.setTargetScore(230);
 
         enemyManager.setupEnemiesForLevel(levelNum, collisionCheck);
     }

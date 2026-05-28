@@ -1,2 +1,1 @@
-# Dreamy Forest
-像素风森林冒险小游戏，课程小组开发项目，玩法与内容持续迭代完善中。
+# Dreamyy Forest

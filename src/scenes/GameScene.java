@@ -1,4 +1,16 @@
-package scenes;
+/**
+ * ---------------------------------------------------------------------------
+ * Massey University - 159.261 Games Programming
+ * Assignment 2
+ * ---------------------------------------------------------------------------
+ * * [Dreamy Forest]
+ * * Team Members:
+ * - LIU ZIMO (ID:24009362)
+ * - MIAO CHONG (ID: 24008986)
+ * - SUN MINGYI (ID: 24009239)
+ * - ZHOU XUAN (ID: 24009035)
+ * ---------------------------------------------------------------------------
+ **/package scenes;
 //图画处理和处理点击的接口
 import core.GameEngine;
 

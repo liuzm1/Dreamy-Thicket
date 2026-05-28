@@ -1,3 +1,16 @@
+/**
+ * ---------------------------------------------------------------------------
+ * Massey University - 159.261 Games Programming
+ * Assignment 2
+ * ---------------------------------------------------------------------------
+ * * [Dreamy Forest]
+ * * Team Members:
+ * - LIU ZIMO (ID:24009362)
+ * - MIAO CHONG (ID: 24008986)
+ * - SUN MINGYI (ID: 24009239)
+ * - ZHOU XUAN (ID: 24009035)
+ * ---------------------------------------------------------------------------
+ **/
 package ui;
 import core.GameEngine;
 import scenes.GameScene;

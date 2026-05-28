@@ -1,3 +1,16 @@
+/**
+ * ---------------------------------------------------------------------------
+ * Massey University - 159.261 Games Programming
+ * Assignment 2
+ * ---------------------------------------------------------------------------
+ * * [Dreamy Forest]
+ * * Team Members:
+ * - LIU ZIMO (ID:24009362)
+ * - MIAO CHONG (ID: 24008986)
+ * - SUN MINGYI (ID: 24009239)
+ * - ZHOU XUAN (ID: 24009035)
+ * ---------------------------------------------------------------------------
+ **/
 package entities;
 
 import core.GameEngine;
@@ -28,6 +41,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     protected int animationFrame = 0;
     protected double animationTimer = 0;
     private Image[] Numbers;
+    private Image stunIcon; // 新增：晕眩状态贴图
 
     protected AnimatedSpriteEnemy(CollisionCheck collisionCheck, GameEngine engine, String spritePath) {
         super(collisionCheck);
@@ -35,6 +49,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
         for (int i = 0; i < 10; i++) {
             Numbers[i] = engine.loadImage("resource/sprites/menus/numbers/" + i + ".png");
         }
+        stunIcon = engine.loadImage("resource/sprites/entities/stunIcon.png");
         spriteSheet = engine.loadImage(spritePath);
     }
 
@@ -72,6 +87,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     public void draw(GameEngine engine) {
         if (spriteSheet == null) return;
 
+        // 1. 正常绘制怪物原本的走路/平移像素动画
         int sx = animationFrame * FRAME_W;
         int sy = spriteRow * FRAME_H;
 
@@ -80,30 +96,15 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
             engine.drawImage(frame, x - 11, y - 15, 52, 52);
         }
 
+        // 2. 【核心修改】如果正在冷却/眩晕中，直接在头顶正中心渲染 16x16 的特效贴图
+        if (isOnCooldown() && stunIcon != null) {
+            // 计算居中坐标：x + 12 刚好可以让 16 宽度的贴图居中在 40 DRAW_SIZE 的怪物头顶
+            // y - 25 让它悬浮在怪物头顶上方的空中，充满灵动感
+            int iconX = x + 12;
+            int iconY = y - 25;
 
-        if (isOnCooldown()) {
-            // 假设你有一个变量叫 currentCooldownTime (从 5.0 递减到 0)
-            // float progress = currentCooldownTime / 5.0f;
-            // 这里我用你的 cooldownDisplay 简单模拟一个进度比例 (假设倒计时是 5,4,3,2,1)
-            float progress = cooldownDisplay / 2.0f;
-            if (progress > 1.0f) progress = 1.0f;
-
-            int barWidth = 32;
-            int barHeight = 5;
-            int barX = x + 4;       // 居中在敌人头顶
-            int barY = y - 12;      // 头顶上方
-
-            // 1. 画进度条背景（暗红色或黑色）
-            engine.changeColor(Color.black);
-            engine.drawSolidRectangle(barX, barY, barWidth, barHeight);
-
-            // 2. 画剩余时间的进度（浅蓝色/冰冻色）
-            engine.changeColor(Color.red);
-            engine.drawSolidRectangle(barX, barY, (int)(barWidth * progress), barHeight);
-
-            // 3. 画一圈像素小边框
-            engine.changeColor(Color.BLACK);
-            engine.drawRectangle(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+            // 完美渲染 16x16 的复古眩晕贴图
+            engine.drawImage(stunIcon, iconX-10, iconY-5, 32, 32);
         }
     }
 }

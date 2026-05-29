@@ -20,17 +20,17 @@ import core.GameEngine;
 import core.GameInstance;
 
 public class MapManager {
-    // 静态常量
+    // Static constants
     public final int GRID_COUNT = 16;
     public final int TILE_SIZE = 40;
 
-    // 数据与资源
+    // Data and assets
     protected int[][] mapData;
     protected int[][] undergroundMap;
 
     private final Image grassTileImg;
-    private final Image stoneImg;  //石头障碍物 == 1
-    private final Image vine; //藤蔓，不能走，但可以消除： 5
+    private final Image stoneImg;  // Stone obstacle == 1
+    private final Image vine; // Vine: blocks movement, can be cleared; tile 5
     private final Image ruby;
     private final Image star;
     private final Image oracle;
@@ -39,8 +39,8 @@ public class MapManager {
     public MapManager(GameEngine engine) {
         mapData = new int[GRID_COUNT][GRID_COUNT];
         undergroundMap = new int[40][40];
-        // 在这里加载资源
-        //0:草地 1-5:障碍物，5是藤蔓 6-9：装饰物，可通行
+        // Load assets here
+        // 0: grass; 1-5: obstacles (5 = vine); 6-9: decorations, passable
         grassTileImg = engine.loadImage("resource/sprites/maps/map1.png");//0
         stoneImg = engine.loadImage("resource/sprites/maps/stone.png"); //1
         vine = engine.loadImage("resource/sprites/maps/vine.png");//5
@@ -51,20 +51,20 @@ public class MapManager {
 
     private void generateItems() {
         int spawned = 0;
-        int maxItems = 5; // 固定生成10个道具
+        int maxItems = 5; // Fixed count of items to spawn
 
-        // 防止死循环，最多循环100次
+        // Cap attempts to avoid infinite loop
         int attempts = 0;
         while (spawned < maxItems && attempts < 100) {
             attempts++;
 
-            // 随机生成在第2~13行、第2~13列，避开外圈边界
+            // Random row/col 2~13, avoiding outer border
             int r = 2 + (int)(Math.random() * 12);
             int c = 2 + (int)(Math.random() * 12);
 
-            // 只在空地生成（0），不覆盖墙、藤蔓和已有的道具
+            // Only on empty tiles (0); do not overwrite walls, vines, or existing items
             if (mapData[r][c] == 0) {
-                // 随机三种道具：6=火+10、7=心+5、8=毒-5
+                // Random item: 6=ruby +5, 7=star +10, 8=oracle +/-5
                 double rand = Math.random();
                 if (rand < 0.94) {
                     mapData[r][c] = 6;
@@ -80,7 +80,7 @@ public class MapManager {
 
 
 
-    // 封装读取逻辑
+    // Encapsulated load logic
     public void loadLevel(String path) {
         try {
             Scanner sc = new Scanner(new File(path));
@@ -99,7 +99,7 @@ public class MapManager {
         }
     }
 
-    // 封装渲染逻辑
+    // Encapsulated render logic
     public void draw(GameEngine engine) {
         engine.drawImage(grassTileImg, 0, 0, 640, 640);
 
@@ -107,18 +107,18 @@ public class MapManager {
             for (int c = 2; c < GRID_COUNT-2; c++) {
                 int px = c * TILE_SIZE;
                 int py = r * TILE_SIZE;
-                // 绘制层级内容
+                // Draw tile layer content
                 int type = mapData[r][c];
 
-                // 根据道具类型区分参数
+                // Per-item-type draw params
                 float offset;
                 double frame = ((GameInstance)engine).animFrame * 0.1f;
 
 
-                //障碍物
+                // Obstacles
                 if (type == 1) engine.drawImage(stoneImg, px+4, py+4, TILE_SIZE-8, TILE_SIZE-8);
                 else if(type == 5) engine.drawImage(vine, px+2, py+2, 35, 35);
-                // 道具：加分道具
+                // Items: score bonus
                 else if (type == 6) {
                     offset = (float)Math.sin(frame) * 3f;
                     engine.drawImage(ruby, px + 4, py + 1 + offset, 39, 39);
@@ -127,7 +127,7 @@ public class MapManager {
                     offset = (float)Math.sin(frame + 1.2) * 2.5f;
                     engine.drawImage(star, px + 4, py + 1 + offset, 35, 35);
                 }
-                // 道具：减分道具（仅开局显示）
+                // Items: score penalty (shown at level start)
                 else if (type == 8) {
                     offset = (float)Math.sin(frame + 2.4) * 2f;
                     engine.drawImage(oracle, px + 4, py + 1 + offset, 32, 32);

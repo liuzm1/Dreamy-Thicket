@@ -21,9 +21,9 @@ public class VictoryMenu implements GameScene{
     private final Image home_btn;
 
     private int[][] btnAreas = {
-            {138, 582, 176, 36}, //重新玩 按钮
-            {336, 582, 176, 36}, //下一关 按钮
-            {534, 570, 90, 75} //主页按钮
+            {138, 582, 176, 36}, // Replay button
+            {336, 582, 176, 36}, // Next level button
+            {534, 570, 90, 75} // Home button
     };
 
     public VictoryMenu(GameEngine engine) {
@@ -36,19 +36,19 @@ public class VictoryMenu implements GameScene{
         engine.changeColor(255,204,255);
         engine.drawImage(victoryMenu_Img, 0, 0,640,640);
         engine.drawImage(home_btn,534,570,90,75);
-        //定义按钮区域
+        // Define button areas
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
     }
     @Override
     public int handleMouseClick(int mx, int my) {
-        // 重新玩：返回 1（重置当前关卡）
+        // Replay: return 1 (reset current level)
         if(checkInside(mx, my, btnAreas[0])) return 1;
-        // 下一关：返回 2（进入下一关）
+        // Next level: return 2 (advance to next level)
         if(checkInside(mx, my, btnAreas[1])) return 2;
-        // 主页按钮：返回 0（回到主菜单）
+        // Home button: return 0 (back to main menu)
         if(checkInside(mx, my, btnAreas[2])) return 0;
-        // 无效点击，返回当前状态
+        // Invalid click, keep current state
         return 4;
     }
 

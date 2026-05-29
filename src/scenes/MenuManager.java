@@ -46,7 +46,7 @@ public class MenuManager {
         gameOverMenu = new GameOverMenu(engine);
         inGameUIButton = new InGameUI_Button(engine);
 
-        //初始状态指向主菜单
+        // Initial state: main menu
         activeScene = startMenu;
     }
 
@@ -63,19 +63,19 @@ public class MenuManager {
     }
 
     public void drawActiveMenu(GameEngine engine, int currentState, MapManager mapManager) {
-        // 1. 画地基
+        // 1. Draw base layer
         if (currentState == STATE_PLAYING || currentState == STATE_PAUSED ||
                 currentState == STATE_VICTOR || currentState == STATE_GAME_OVER) {
             mapManager.draw(engine);
         }
 
-        // 2. 特殊处理：如果是游戏中，额外画一层 InGameUI
+        // 2. Special case: during gameplay, draw InGameUI on top
         if (currentState == STATE_PLAYING) {
-            inGameUIButton.draw(engine); // 这样它就不用非得挤在 activeScene 变量里了
+            inGameUIButton.draw(engine); // Keeps it out of activeScene
         }
 
 
-        // 2. 再画菜单。因为 activeScene.draw 在后面，它会覆盖在地图上
+        // 3. Draw menu overlay (activeScene.draw runs after map, so it covers the map)
         if (activeScene != null) {
             activeScene.draw(engine);
         }

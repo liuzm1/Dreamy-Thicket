@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 public class GameInstance extends GameEngine {
     public int animFrame = 0;
 
-    // ====================== 模块化管理器驱动 ======================
+    // ====================== Manager modules ======================
     private AudioManager audioManager;
     private InputManager inputManager;
     private EnemyManager enemyManager;
@@ -38,7 +38,7 @@ public class GameInstance extends GameEngine {
     private final MenuManager menuManager = new MenuManager(this);
     private CollisionCheck collisionCheck;
 
-    // ====================== 游戏状态属性 ======================
+    // ====================== Game state ======================
     private int score = 0;
     private float countdownTime = 90.0f;
     private int targetScore = 80;
@@ -46,7 +46,7 @@ public class GameInstance extends GameEngine {
     private float winDelayTimer = 0;
     private GameState currentState = GameState.START_MENU;
 
-    // ====================== 角色管理 ======================
+    // ====================== Characters ======================
     private SoloPlayer player1;
     private GeneratePlayer generatePlayer;
     private DestroyPlayer destroyPlayer;
@@ -57,7 +57,7 @@ public class GameInstance extends GameEngine {
 
     @Override
     public void init() {
-        // 初始化各个剥离的组件管理器
+        // Initialize component managers
         this.audioManager = new AudioManager(this);
         this.inputManager = new InputManager();
         this.enemyManager = new EnemyManager(this);
@@ -69,7 +69,7 @@ public class GameInstance extends GameEngine {
         inputManager.initKeys();
         resetSharedLives();
 
-        // 初始装载第一关
+        // Load first level
         levelManager.loadLevel(101, mapManager, enemyManager, collisionCheck);
         audioManager.playMenuBGM();
     }
@@ -101,7 +101,7 @@ public class GameInstance extends GameEngine {
     @Override
     public void update(double dt) {
         if (currentState == GameState.PLAYING) {
-            // 1. 倒计时检测
+            // 1. Countdown
             countdownTime -= dt;
             if (countdownTime <= 0) {
                 countdownTime = 0;
@@ -109,7 +109,7 @@ public class GameInstance extends GameEngine {
                 return;
             }
 
-            // 2. 玩家位移移动
+            // 2. Player movement
             if (!isTwoPlayer) {
                 if (player1 != null) {
                     player1.setEnemies(enemyManager.getAllEnemies());
@@ -137,18 +137,18 @@ public class GameInstance extends GameEngine {
                 }
             }
 
-            // 3. 敌人行为与碰撞
+            // 3. Enemies and collisions
             enemyManager.update(dt, getActivePlayers());
             enemyManager.checkCollisions(getActivePlayers());
             animFrame++;
 
-            // 4. 胜利条件判定
+            // 4. Win condition
             if (score >= targetScore) {
                 winDelayTimer += dt;
                 if (winDelayTimer >= 0.1f) {
                     currentState = GameState.VICTOR;
                     menuManager.switchScene(currentState.toInt());
-                    audioManager.playGameWinBGM(); // 完美切歌
+                    audioManager.playGameWinBGM(); // Switch to victory BGM
                     winDelayTimer = 0;
                 }
             }
@@ -196,7 +196,7 @@ public class GameInstance extends GameEngine {
         winDelayTimer = 0;
         resetSharedLives();
         if (player1 != null) {
-            // 确保单人角色的HP也恢复满（根据你Player类里 reset 的设计，下面 resetPlayersToSpawn 会处理，这里加个保险）
+            // Ensure solo HP is full (resetPlayersToSpawn handles this; extra guard)
         }
     }
 
@@ -242,25 +242,25 @@ public class GameInstance extends GameEngine {
         }
         if (nextStateInt == -1) return;
 
-        // 处理胜利场景结算按钮
+        // Victory screen buttons
         if (currentState == GameState.VICTOR) {
-            if (nextStateInt == 1) { // 重玩本关
+            if (nextStateInt == 1) { // Replay level
                 resetScoreAndTime();
                 levelManager.loadLevel(levelManager.getCurrentLevel(), mapManager, enemyManager, collisionCheck);
                 resetPlayersToSpawn();
                 enterPlayingState();
-            } else if (nextStateInt == 2) { // 下一关
+            } else if (nextStateInt == 2) { // Next level
                 resetScoreAndTime();
                 levelManager.nextLevel(mapManager, enemyManager, collisionCheck);
                 resetPlayersToSpawn();
                 enterPlayingState();
-            } else if (nextStateInt == 0) { // 回主菜单
+            } else if (nextStateInt == 0) { // Main menu
                 backToMainMenu();
             }
             return;
         }
 
-        // 处理新关卡加载 (来自关卡选择或GameOver跳转)
+        // Load level from level select or game over
         if (nextStateInt >= 100) {
             resetScoreAndTime();
             if (isTwoPlayer) resetSharedLives();
@@ -268,18 +268,18 @@ public class GameInstance extends GameEngine {
             resetPlayersToSpawn();
             enterPlayingState();
         }
-        // 游戏内暂停重试
+        // In-game pause: restart level
         else if (nextStateInt == GameState.PLAYING.toInt() && currentState == GameState.PLAYING) {
             resetScoreAndTime();
             levelManager.loadLevel(levelManager.getCurrentLevel(), mapManager, enemyManager, collisionCheck);
             resetPlayersToSpawn();
             audioManager.playGameplayBGM();
         }
-        // 从暂停中恢复
+        // Resume from pause
         else if (nextStateInt == GameState.PLAYING.toInt() && currentState != GameState.PLAYING) {
             enterPlayingState();
         }
-        // 普通菜单页面切换
+        // Normal menu navigation
         else if (nextStateInt != currentState.toInt()) {
             GameState targetState = GameState.fromInt(nextStateInt);
             if (targetState == GameState.START_MENU) {

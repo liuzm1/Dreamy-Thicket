@@ -12,7 +12,7 @@
  * ---------------------------------------------------------------------------
  **/
 package core;
-//初始化窗口和启动游戏循环
+// Initialize window and start game loop
 import static core.GameEngine.createGame;
 
 public class Main {

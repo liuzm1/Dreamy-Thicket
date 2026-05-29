@@ -35,9 +35,9 @@ import java.util.Queue;
 
 /**
 
- * 第三关敌人：寻找并消除最近的玩家藤蔓（相邻格删除，不踩藤蔓）。
-
- * 移动时绕开石头/藤蔓及其他敌人；Enemy1 不主动让路，本怪自行寻路避让。
+ * Level 3 enemy: finds and destroys nearest player-placed vine (adjacent cell removal, does not step on vines).
+ *
+ * Routes around stone/vines/other enemies while moving; Enemy1 does not yield—this enemy pathfinds around them.
 
  */
 
@@ -91,11 +91,11 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
         }
 
         if (!isMoving) {
-            // 【核心修正】将 if (!tryDestroyAdjacentVine()) 拆开
-            // 让它在尝试消除相邻藤蔓之后，不管有没有消成功，只要当前还没动，就立刻寻找新目标
+            // Split out if (!tryDestroyAdjacentVine()) so after attempting removal,
+            // whether successful or not, search for a new target immediately if still idle
             tryDestroyAdjacentVine();
 
-            // 消除完（或身边没有）之后，立刻在大地图重新搜寻最迫近的目标藤蔓
+            // After clearing (or if none nearby), search the map for the nearest vine
             int[] nearestVine = findNearestVine();
             if (nearestVine != null) {
                 tryMoveTowardVine(nearestVine[0], nearestVine[1]);
@@ -108,7 +108,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
 
-    /** 相邻格有藤蔓则删除（不踏入藤蔓格） */
+    /** Remove vine on adjacent cell if present (does not step onto vine cell). */
 
     private boolean tryDestroyAdjacentVine() {
 
@@ -190,7 +190,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
 
-    /** BFS 走到离目标藤蔓曼哈顿距离为 1 的格子 */
+    /** BFS to a cell with Manhattan distance 1 from target vine. */
 
     private int[] findNextStepBfsAdjacentTo(int vineCol, int vineRow) {
 
@@ -284,7 +284,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
 
 
 
-    /** BFS 失败时，选一步最接近目标藤蔓的可走方向 */
+    /** When BFS fails, pick walkable direction closest to target vine. */
 
     private int[] pickMoveToward(int targetCol, int targetRow) {
 
@@ -321,7 +321,7 @@ public class VineDestroyerEnemy extends AnimatedSpriteEnemy {
         if (peerEnemies != null) {
             for (Enemy peer : peerEnemies) {
                 if (peer == null || peer == this) continue;
-                // 第三关追踪怪不挡藤蔓怪寻路，避免互相卡住导致 Enemy3 完全不动
+                // Level 3 chase enemies do not block vine destroyer pathfinding (prevents Enemy3 getting stuck)
                 if (peer instanceof ChaseEnemy) continue;
                 if (peer.occupiesOrHeadingTo(nextCol, nextRow)) return false;
             }

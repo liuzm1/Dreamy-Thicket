@@ -22,21 +22,21 @@ public class LevelSelectMenu implements GameScene{
     }
 
     private final int[][] btnAreas = {
-            {64,246,84,84},  //关卡1
-            {210,246,84,84}, //关卡2
-            {350,246,84,84}, //关卡3
-            {492,246,84,84}, //关卡4
-            {210,415,84,84}, //关卡5
-            {492,415,84,84}, //关卡6
-            {14,576,154,54}, //返回菜单
-            {490,576,134,64}  //开始游戏
+            {64,246,84,84},  // Level 1
+            {210,246,84,84}, // Level 2
+            {350,246,84,84}, // Level 3
+            {492,246,84,84}, // Level 4
+            {210,415,84,84}, // Level 5
+            {492,415,84,84}, // Level 6
+            {14,576,154,54}, // Back to menu
+            {490,576,134,64}  // Start game
     };
 
     @Override
     public void draw(GameEngine engine){
         engine.changeColor(255,204,255);
         engine.drawImage(levelSelectMenu_Img,0,0,640,640);
-        //定义按钮区域
+        // Define button areas
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
     }
@@ -47,7 +47,7 @@ public class LevelSelectMenu implements GameScene{
         if(checkInside(mx, my, btnAreas[1])) return 102;
         if(checkInside(mx, my, btnAreas[2])) return 103;
         if(checkInside(mx, my, btnAreas[6])) return 0;
-        //点击开始游戏的按钮直接从第一关开始
+        // Start game button: begin from level 1
         if(checkInside(mx, my, btnAreas[7])) return 101;
         return -1;
     }

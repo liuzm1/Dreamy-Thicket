@@ -36,10 +36,10 @@ public class DrawSelector {
             int h = btnArea[3];
 
             if (mx >= x && mx <= x + w && my >= y && my <= y + h) {
-                // 悬浮效果：在按钮左侧画个小图标
+                // Hover effect: draw small icon to the left of button
                 engine.drawImage(selectorIcon,(x-32+w/2), y - 64, 64, 64);
 
-                break; // 找到一个悬浮就跳出循环
+                break; // Stop after first hovered button
             }
         }
     }

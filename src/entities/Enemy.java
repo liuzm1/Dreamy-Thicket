@@ -17,8 +17,8 @@ import core.GameEngine;
 import maps.CollisionCheck;
 
 /**
- * 敌人基类：网格坐标 + 平滑像素移动。
- * 逻辑格子在移动动画结束后才更新，避免寻路互相卡死。
+ * Base enemy: grid coords + smooth pixel movement.
+ * Logical cell updates after move animation to avoid pathfinding deadlocks.
  */
 public abstract class Enemy {
     public int col;
@@ -42,7 +42,7 @@ public abstract class Enemy {
     protected int cooldownDisplay = 0;
     protected double cooldownTimer = 0;
     private static final double COOLDOWN_TICK = 1.0;
-    /** 碰撞后原地停顿秒数（头顶倒计时 5→1） */
+    /** Seconds to pause in place after collision (countdown 5→1 above head). */
     private static final int COOLDOWN_SECONDS = 2;
 
     protected Enemy(CollisionCheck collisionCheck) {
@@ -82,13 +82,13 @@ public abstract class Enemy {
         return isMoving ? targetY / TILE_SIZE : row;
     }
 
-    /** 占用当前格或正在移动到的目标格 */
+    /** Occupies current cell or target cell while moving. */
     public boolean occupiesOrHeadingTo(int c, int r) {
         if (col == c && row == r) return true;
         return isMoving && getTargetCol() == c && getTargetRow() == r;
     }
 
-    /** 该格是否被其他敌人占据或即将占据 */
+    /** Whether another enemy occupies or is heading to this cell. */
     public static boolean isBlockedByPeer(Enemy self, Enemy[] peers, int c, int r) {
         if (peers == null) return false;
         for (Enemy peer : peers) {
@@ -124,7 +124,7 @@ public abstract class Enemy {
 
     protected boolean tryMoveTo(int nextCol, int nextRow) {
         if (collisionCheck.isSolid(nextCol, nextRow)) return false;
-        // 移动中：仅当目标格变化时才重定向（供追踪怪连贯换格）
+        // While moving: retarget only when destination changes (smooth chase transitions)
         if (isMoving) {
             if (targetX / TILE_SIZE == nextCol && targetY / TILE_SIZE == nextRow) {
                 return false;
@@ -151,7 +151,7 @@ public abstract class Enemy {
         moveProgress = 0;
     }
 
-    /** 按“每格耗时”插值移动，避免低速时帧率波动导致忽快忽慢或卡住 */
+    /** Interpolate by time-per-tile to avoid frame-rate jitter at low speed. */
     protected void updateSmoothMovement(double dt) {
         if (!isMoving) return;
 

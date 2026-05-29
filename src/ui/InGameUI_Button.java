@@ -49,16 +49,16 @@ public class InGameUI_Button implements GameScene {
 
     @Override
     public int handleMouseClick(int mx, int my){
-        if(checkInside(mx, my, btnAreas[0])) return 0;  // 第一个按钮点击是 返回主页
-        //第二个按钮点击是 游戏暂停
+        if(checkInside(mx, my, btnAreas[0])) return 0;  // First button: return to main menu
+        // Second button: pause game
         if(checkInside(mx, my, btnAreas[1])) return 2;
-        //第三个按钮点击是 重新开始游戏
+        // Third button: restart game
         if(checkInside(mx, my, btnAreas[2])) return 1;
 
         return -1;
     }
 
-    //判断鼠标位置
+    // Check if mouse is inside button area
     private boolean checkInside(int mx, int my, int[] area) {
         return mx >= area[0] && mx <= area[0] + area[2] &&
                 my >= area[1] && my <= area[1] + area[3];

@@ -18,8 +18,8 @@ import java.awt.Color;
 import java.awt.Image;
 
 /**
- * 游戏界面 UI 组件
- * 显示生命值、得分、90秒倒计时、技能按键紧贴头像聚合，以及【+-生成消除】符号引导
+ * In-game UI component.
+ * Shows HP, score, 90s countdown, skill keys beside portraits, and +/- grow/clear hints.
  */
 public class GameUI {
     private Image heartImage;
@@ -57,7 +57,7 @@ public class GameUI {
     }
 
     public void draw(GameEngine engine, int hp, int score, double timeLeft, int target, boolean isTwoPlayer) {
-        // --- 顶部资源数据栏 ---
+        // --- Top resource bar ---
         engine.drawImage(SocreBoardImage, 10, 5, 120, 40);
         engine.drawImage(SocreBoardImage, 140, 5, 120, 40);
         engine.drawImage(cup_Icon, 6, -6, 57, 57);
@@ -75,7 +75,7 @@ public class GameUI {
             engine.drawImage(Numbers[digit], 170 + (3 - i) * 18, 4, 45, 45);
         }
 
-        // --- 中间计时器 ---
+        // --- Center timer ---
         engine.drawImage(Board, 260, 580, 120, 45);
         engine.drawImage(clock_Icon, 253, 571, 57, 57);
         for (int i = 2; i >= 0; i--) {
@@ -84,27 +84,27 @@ public class GameUI {
             engine.drawImage(Numbers[digit], 288 + (2 - i) * 25, 575, 52, 52);
         }
 
-        // ====================== 1P 底部状态牌 (左侧：奥恩 - 消除) ======================
+        // ====================== 1P bottom status panel (left: Aila - clear) ======================
         engine.drawImage(Board, 30, 580, 180, 45);
         engine.drawImage(P1_headshot, 34, 573, 45, 50);
 
-        // 1P (Q键)：双人模式下显现，绘制代表【消除】的红减号 "-" (isPlus = false)
+        // 1P (Q key): shown in co-op; red minus "-" for clear (isPlus = false)
         drawPixelKeyPrompt(engine, 85, 592, "Q", false, isTwoPlayer);
 
-        // 1P 血量
+        // 1P HP
         for (int i = 0; i < hp && i < 3; i++) {
             engine.drawImage(heartImage, 118 + i * 24, 587, 32, 32);
         }
 
-        // ====================== 2P 底部状态牌 (右侧：艾露 - 生成) ======================
+        // ====================== 2P bottom status panel (right: Oren - grow) ======================
         if (isTwoPlayer) {
             engine.drawImage(Board, 430, 580, 180, 45);
             engine.drawImage(P2_headshot, 561, 573, 45, 50);
 
-            // 2P (SPC键)：双人模式下显现，绘制代表【生成】的绿加号 "+" (isPlus = true)
+            // 2P (SPC key): shown in co-op; green plus "+" for grow (isPlus = true)
             drawPixelKeyPrompt(engine, 523, 592, "SPC", true, true);
 
-            // 2P 血量
+            // 2P HP
             for (int i = 0; i < hp && i < 3; i++) {
                 engine.drawImage(heartImage, 487 - i * 24, 587, 32, 32);
             }
@@ -112,9 +112,9 @@ public class GameUI {
     }
 
     /**
-     * 辅助美化方法：绘制带立体阴影的像素按键，并根据模式在头顶附加功能指示符 (+/-)
-     * @param isPlus true 画绿加号，false 画红减号
-     * @param showSymbol 是否显示符号（单人模式不显示）
+     * Draw pixel key prompt with drop shadow and optional +/- function indicator above.
+     * @param isPlus true for green plus, false for red minus
+     * @param showSymbol whether to show symbol (hidden in solo mode)
      */
     private void drawPixelKeyPrompt(GameEngine engine, int x, int y, String keyName, boolean isPlus, boolean showSymbol) {
         if (engine == null) return;
@@ -122,20 +122,20 @@ public class GameUI {
         int keyWidth = keyName.equals("SPC") ? 32 : 22;
         int keyHeight = 22;
 
-        // ----------------- 1. 绘制键盘按键本体 -----------------
-        // 外圈黑边
+        // ----------------- 1. Draw key cap -----------------
+        // Outer black border
         engine.changeColor(Color.BLACK);
         engine.drawRectangle(x - 1, y - 1, keyWidth + 2, keyHeight + 2);
 
-        // 填充复古灰底色
+        // Retro gray fill
         engine.changeColor(new Color(225, 220, 215));
         engine.drawSolidRectangle(x, y, keyWidth, keyHeight);
 
-        // 底部凸起按键阴影
+        // Bottom raised key shadow
         engine.changeColor(new Color(175, 170, 165));
         engine.drawSolidRectangle(x, y + keyHeight - 3, keyWidth, 3);
 
-        // 按键文字
+        // Key label
         engine.changeColor(new Color(60, 55, 50));
         if (keyName.equals("SPC")) {
             engine.drawBoldText(x + 4, y + 16, "SPC", "Monospaced", 11);
@@ -143,26 +143,26 @@ public class GameUI {
             engine.drawBoldText(x + 6, y + 17, "Q", "Monospaced", 14);
         }
 
-        // ----------------- 2. 头顶的【功能符号指示器】 -----------------
+        // ----------------- 2. Function symbol indicator above key -----------------
         if (showSymbol) {
-            int symbolX = x + (keyWidth / 2) - 3; // 符号居中在按键头顶
-            int symbolY = y - 9;                  // 漂浮在按键上方
+            int symbolX = x + (keyWidth / 2) - 3; // Center symbol above key
+            int symbolY = y - 9;                  // Float above key
 
             if (isPlus) {
-                // 【生成】：画生机绿的【加号 +】
-                engine.changeColor(Color.BLACK); // 符号黑边
+                // Grow: draw green plus (+)
+                engine.changeColor(Color.BLACK); // Symbol outline
                 engine.drawSolidRectangle(symbolX - 1, symbolY + 2, 9, 3);
                 engine.drawSolidRectangle(symbolX + 2, symbolY - 1, 3, 9);
 
-                engine.changeColor(new Color(50, 215, 100)); // 亮丽的自然生机绿
+                engine.changeColor(new Color(50, 215, 100)); // Bright green
                 engine.drawSolidRectangle(symbolX, symbolY + 3, 7, 1);
                 engine.drawSolidRectangle(symbolX + 3, symbolY, 1, 7);
             } else {
-                // 【消除】：画警示红的【减号 -】
-                engine.changeColor(Color.BLACK); // 符号黑边
+                // Clear: draw red minus (-)
+                engine.changeColor(Color.BLACK); // Symbol outline
                 engine.drawSolidRectangle(symbolX - 1, symbolY + 2, 9, 3);
 
-                engine.changeColor(new Color(220, 90, 90)); // 火焰红
+                engine.changeColor(new Color(220, 90, 90)); // Red
                 engine.drawSolidRectangle(symbolX, symbolY + 3, 7, 1);
             }
         }

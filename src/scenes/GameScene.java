@@ -11,14 +11,14 @@
  * - ZHOU XUAN (ID: 24009035)
  * ---------------------------------------------------------------------------
  **/package scenes;
-//图画处理和处理点击的接口
+// Drawing and click-handling interface
 import core.GameEngine;
 
 public interface GameScene {
-    //每个页面都要画自己
+    // Each scene draws itself
     void draw(GameEngine engine);
-    //每个页面都要处理自己的点击，并返回“下一步去哪个状态”
-    //如果返回 -1 或当前状态值，表示不跳转
+    // Each scene handles its own clicks and returns the next state
+    // Return -1 or current state to stay on the same screen
     int handleMouseClick(int mx, int my);
 
 

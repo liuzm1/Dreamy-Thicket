@@ -15,48 +15,48 @@ package scenes;
 import core.GameEngine;
 import scenes.DrawSelector;
 import java.awt.Image;
-//功能：游戏结束菜单，展示，按钮区域，鼠标悬浮在按钮上出现小刺猬图标
+// Game over menu: display, button areas, hedgehog icon on hover
 public class StartMenu implements GameScene{
     private final Image startMenu_Img;
 
     boolean isTwoPlayer = false;
 
-    //定义按钮区域
+    // Define button areas
     private int[][] btnAreas = {
-            {15, 578, 154, 55}, // 0: 单人模式 [x, y, w, h]
-            {186, 578, 154, 55}, // 1: 双人模式
-            {338, 578, 154, 55}, // 2: 帮助
-            {490, 578, 154, 55}  // 3: 退出
+            {15, 578, 154, 55}, // 0: solo mode [x, y, w, h]
+            {186, 578, 154, 55}, // 1: co-op mode
+            {338, 578, 154, 55}, // 2: help
+            {490, 578, 154, 55}  // 3: quit
     };
 
     public StartMenu(GameEngine engine) {
         startMenu_Img = engine.loadImage("resource/sprites/menus/bg_start_bg.png");
     }
-    //绘制界面和按钮悬浮
+    // Draw UI and button hover
     @Override
     public void draw(GameEngine engine){
         engine.changeColor(255,204,255);
         engine.drawImage(startMenu_Img,0,0,640,640);
-        //定义按钮区域
+        // Define button areas
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
     }
 
 
-    //按钮交互
+    // Button interaction
     @Override
     public int handleMouseClick(int mx, int my){
         if(checkInside(mx, my, btnAreas[0])) {
             isTwoPlayer = false;
-            return 3;  //点击单人模式，跳转 选择关卡
+            return 3;  // Solo mode: go to level select
         }
         if(checkInside(mx, my, btnAreas[1])) {
             isTwoPlayer = true;
             return 3;
         }
-             //点击双人模式，跳转 选择关卡
-        if(checkInside(mx, my, btnAreas[2])) return 6;  //点击HELP，跳转 HELP
-        if(checkInside(mx, my, btnAreas[3])) System.exit(0); //点击 退出，退出
+             // Co-op mode: go to level select
+        if(checkInside(mx, my, btnAreas[2])) return 6;  // Help
+        if(checkInside(mx, my, btnAreas[3])) System.exit(0); // Quit
         return -1;
     }
 
@@ -64,7 +64,7 @@ public class StartMenu implements GameScene{
         return isTwoPlayer;
     }
 
-    //判断鼠标位置
+    // Check if mouse is inside button area
     private boolean checkInside(int mx, int my, int[] area) {
         return mx >= area[0] && mx <= area[0] + area[2] &&
                 my >= area[1] && my <= area[1] + area[3];

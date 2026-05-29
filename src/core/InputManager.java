@@ -16,9 +16,9 @@ package core;
 import java.awt.event.KeyEvent;
 
 public class InputManager {
-    // 1P 移动开关
+    // 1P movement flags
     public boolean up, down, left, right;
-    // 2P 移动开关
+    // 2P movement flags
     public boolean up_P2, down_P2, left_P2, right_P2;
 
     public void initKeys() {
@@ -29,7 +29,7 @@ public class InputManager {
     public void handleKeyPressed(KeyEvent e, GameInstance game, AudioManager audio) {
         int key = e.getKeyCode();
 
-        // ----------------- 1. 基础位移按键状态更新（两套按键独立响应） -----------------
+        // ----------------- 1. Update movement key state (two independent sets) -----------------
         if (key == KeyEvent.VK_W) up = true;
         if (key == KeyEvent.VK_S) down = true;
         if (key == KeyEvent.VK_A) left = true;
@@ -40,19 +40,19 @@ public class InputManager {
         if (key == KeyEvent.VK_LEFT)  left_P2 = true;
         if (key == KeyEvent.VK_RIGHT) right_P2 = true;
 
-        // ----------------- 2. 技能释放（单次触发行为，需限制在 PLAYING 状态） -----------------
+        // ----------------- 2. Skills (one-shot; only while PLAYING) -----------------
         if (game.getCurrentState() == GameState.PLAYING) {
 
-            // 【Q键】释放技能
+            // Q key: skill
             if (key == KeyEvent.VK_Q) {
                 if (!game.isTwoPlayer) {
-                    // 单人模式：1P 释放普通技能
+                    // Solo: 1P normal skill
                     if (game.getPlayer1() != null) {
                         game.getPlayer1().useSkill(game.getMapManager());
                         audio.playSkillSFX();
                     }
                 } else {
-                    // 双人模式：1P (DestroyPlayer) 释放技能
+                    // Co-op: 1P (DestroyPlayer) skill
                     if (game.getDestroyPlayer() != null) {
                         game.getDestroyPlayer().useSkill(game.getMapManager());
                         audio.playSkillSFX();
@@ -60,7 +60,7 @@ public class InputManager {
                 }
             }
 
-            // 【空格键】释放技能（仅在双人模式下由 2P 触发）
+            // Space: skill (co-op 2P only)
             if (key == KeyEvent.VK_SPACE && game.isTwoPlayer) {
                 if (game.getGeneratePlayer() != null) {
                     game.getGeneratePlayer().useSkill(game.getMapManager());
@@ -73,7 +73,7 @@ public class InputManager {
     public void handleKeyReleased(KeyEvent e) {
         int key = e.getKeyCode();
 
-        // 释放按键时，无条件把对应的布尔开关关掉
+        // On key release, clear matching movement flags
         if (key == KeyEvent.VK_W) up = false;
         if (key == KeyEvent.VK_S) down = false;
         if (key == KeyEvent.VK_A) left = false;

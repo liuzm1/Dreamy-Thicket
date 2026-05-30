@@ -30,14 +30,14 @@ public class SoloPlayer extends Player {
 
 
     //    **
-//            * 虽然现在不设计藤蔓逻辑，但因为父类是 abstract，这里必须实现
-//     * 先留个空，保证程序能编译通过
+//            * Vine logic not fully designed yet; must implement because parent is abstract.
+//     * Stub for compilation.
 //     */
     @Override
     public void useSkill(maps.MapManager map) {
-        // 移动或施法中不可重复施法
+        // Cannot cast again while moving or already casting
         if (isCasting || isClearing || isMoving) return;
-        // 1. 确定目标起点（面前第一格）
+        // 1. Target cell in front of player
         currentCastCol = this.col;
         currentCastRow = this.row;
         if (direction == DIR_UP) currentCastRow--;
@@ -45,11 +45,11 @@ public class SoloPlayer extends Player {
         else if (direction == DIR_LEFT) currentCastCol--;
         else if (direction == DIR_RIGHT) currentCastCol++;
 
-        // 2. 判定：是长还是消？
+        // 2. Grow or clear?
         int tile = mapManager.getTile(currentCastCol, currentCastRow);
 
         if (tile == 5) {
-            // 如果面前已经是藤蔓，进入消除模式
+            // Vine ahead: enter clear mode
             isClearing = true;
             remainingVineGrids = 11;
             castTimer = 0;
@@ -62,9 +62,9 @@ public class SoloPlayer extends Player {
 
     @Override
     public void update(double dt) {
-        super.update(dt); // 执行父类的平滑移动逻辑
+        super.update(dt); // Parent smooth movement
 
-        // 处理延时逻辑
+        // Timed grow/clear steps
         if (isCasting || isClearing) {
             castTimer += dt;
             if (castTimer >= GROW_INTERVAL) {
@@ -108,7 +108,7 @@ public class SoloPlayer extends Player {
             return;
         }
         mapManager.setTile(currentCastCol, currentCastRow, 0);
-        // 计算下一格坐标
+        // Next cell along facing direction
         if (direction == DIR_UP) currentCastRow--;
         else if (direction == DIR_DOWN) currentCastRow++;
         else if (direction == DIR_LEFT) currentCastCol--;
@@ -116,7 +116,7 @@ public class SoloPlayer extends Player {
 
         remainingVineGrids--;
 
-        // 次数用完则停止
+        // Stop when step count exhausted
         if (remainingVineGrids <= 0) {
             isClearing = false;
         }

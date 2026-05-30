@@ -22,7 +22,7 @@ import java.awt.event.ActionListener;
 public class GameOverMenu implements GameScene{
     public final Image gameOverMunu_Image;
 
-    private int[][] btnAreas = {{200,340,240,92},};  //回到关卡选择
+    private int[][] btnAreas = {{200,340,240,92},};  // Back to level select
 
     public GameOverMenu(GameEngine engine) {
         gameOverMunu_Image = engine.loadImage("resource/sprites/menus/bg_GameOver_bg.png");
@@ -30,7 +30,7 @@ public class GameOverMenu implements GameScene{
     @Override
     public void draw(GameEngine engine) {
         engine.drawImage(gameOverMunu_Image, 160, 180,320,280);
-        //定义按钮区域
+        // Define button areas
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine,btnAreas);
     }

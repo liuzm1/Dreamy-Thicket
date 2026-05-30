@@ -31,7 +31,7 @@ public class DestroyPlayer extends Player{
     public void useSkill(MapManager mapManager){
         if(isMoving || isClearing) return ;
 
-        // 1. 确定目标起点（面前第一格）
+        // 1. Target cell in front of player
         currentCastCol = this.col;
         currentCastRow = this.row;
         if (direction == DIR_UP) currentCastRow--;
@@ -39,7 +39,7 @@ public class DestroyPlayer extends Player{
         else if (direction == DIR_LEFT) currentCastCol--;
         else if (direction == DIR_RIGHT) currentCastCol++;
 
-        // 2. 判定：是长还是消？
+        // 2. Grow or clear?
         int tile = mapManager.getTile(currentCastCol, currentCastRow);
         if(tile == 5){
             isClearing = true;
@@ -50,9 +50,9 @@ public class DestroyPlayer extends Player{
 
     @Override
     public void update(double dt) {
-        super.update(dt); // 执行父类的平滑移动逻辑
+        super.update(dt); // Parent smooth movement
 
-        // 处理延时逻辑
+        // Timed clear steps
         if (isCasting || isClearing) {
             castTimer += dt;
             if (castTimer >= GROW_INTERVAL) {
@@ -69,7 +69,7 @@ public class DestroyPlayer extends Player{
             return;
         }
         mapManager.setTile(currentCastCol, currentCastRow, 0);
-        // 计算下一格坐标
+        // Next cell along facing direction
         if (direction == DIR_UP) currentCastRow--;
         else if (direction == DIR_DOWN) currentCastRow++;
         else if (direction == DIR_LEFT) currentCastCol--;
@@ -77,7 +77,7 @@ public class DestroyPlayer extends Player{
 
         remainingVineGrids--;
 
-        // 次数用完则停止
+        // Stop when step count exhausted
         if (remainingVineGrids <= 0) {
             isClearing = false;
         }

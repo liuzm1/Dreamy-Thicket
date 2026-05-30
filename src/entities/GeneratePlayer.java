@@ -32,7 +32,7 @@ public class GeneratePlayer extends Player {
         spriteSheet = engine.loadImage("resource/sprites/entities/P2.png");
     }
 
-    /** 玩家2 不能踏入藤蔓格 */
+    /** Player 2 cannot step on vine tiles. */
     @Override
     protected boolean canEnterTile(CollisionCheck collisionCheck, int col, int row) {
         if (collisionCheck.isVine(col, row)) return false;
@@ -61,7 +61,7 @@ public class GeneratePlayer extends Player {
     public void update(double dt) {
         super.update(dt);
 
-        // 处理延时逻辑
+        // Timed grow steps
         if (isCasting || isClearing) {
             castTimer += dt;
             if (castTimer >= GROW_INTERVAL) {

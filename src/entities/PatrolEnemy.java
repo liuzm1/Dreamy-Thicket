@@ -17,7 +17,7 @@ import core.GameEngine;
 import maps.CollisionCheck;
 
 /**
- * 第一关敌人：固定行上水平巡逻，使用 Enemy1 精灵表动画。
+ * Level 1 enemy: horizontal patrol on a fixed row, using Enemy1 sprite sheet animation.
  */
 public class PatrolEnemy extends AnimatedSpriteEnemy {
 

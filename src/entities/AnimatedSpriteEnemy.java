@@ -20,8 +20,8 @@ import java.awt.Color;
 import java.awt.Image;
 
 /**
- * 使用 5 行×4 列精灵表的敌人（与 Enemy1 相同布局）。
- * 行0=下，行1=左，行2=右，行3=上，行4不用。
+ * Enemy using a 5×4 sprite sheet (same layout as Enemy1).
+ * Row 0=down, row 1=left, row 2=right, row 3=up, row 4 unused.
  */
 public abstract class AnimatedSpriteEnemy extends Enemy {
 
@@ -41,7 +41,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     protected int animationFrame = 0;
     protected double animationTimer = 0;
     private Image[] Numbers;
-    private Image stunIcon; // 新增：晕眩状态贴图
+    private Image stunIcon; // Stun state icon
 
     protected AnimatedSpriteEnemy(CollisionCheck collisionCheck, GameEngine engine, String spritePath) {
         super(collisionCheck);
@@ -54,7 +54,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     }
 
     /**
-     * 根据移动方向更新朝向行
+     * Update sprite row from movement direction.
      */
     protected void setSpriteRowFromDelta(int dx, int dy) {
         if (dx > 0) spriteRow = ROW_RIGHT;
@@ -77,7 +77,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     }
 
     /**
-     * 该格是否被此敌人占据或正在走向
+     * Whether this enemy occupies or is heading to the given cell.
      */
     public boolean occupiesOrHeadingTo(int c, int r) {
         return super.occupiesOrHeadingTo(c, r);
@@ -87,7 +87,7 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
     public void draw(GameEngine engine) {
         if (spriteSheet == null) return;
 
-        // 1. 正常绘制怪物原本的走路/平移像素动画
+        // 1. Draw normal walk/slide pixel animation
         int sx = animationFrame * FRAME_W;
         int sy = spriteRow * FRAME_H;
 
@@ -96,14 +96,14 @@ public abstract class AnimatedSpriteEnemy extends Enemy {
             engine.drawImage(frame, x - 11, y - 15, 52, 52);
         }
 
-        // 2. 【核心修改】如果正在冷却/眩晕中，直接在头顶正中心渲染 16x16 的特效贴图
+        // 2. While on cooldown/stunned, render 16×16 effect icon centered above head
         if (isOnCooldown() && stunIcon != null) {
-            // 计算居中坐标：x + 12 刚好可以让 16 宽度的贴图居中在 40 DRAW_SIZE 的怪物头顶
-            // y - 25 让它悬浮在怪物头顶上方的空中，充满灵动感
+            // Center: x + 12 aligns 16px-wide icon on 40px DRAW_SIZE sprite
+            // y - 25 floats icon above the enemy head
             int iconX = x + 12;
             int iconY = y - 25;
 
-            // 完美渲染 16x16 的复古眩晕贴图
+            // Draw 16×16 retro stun icon (scaled to 32×32 on screen)
             engine.drawImage(stunIcon, iconX-10, iconY-5, 32, 32);
         }
     }

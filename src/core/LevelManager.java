@@ -37,7 +37,7 @@ public class LevelManager {
 
         mapManager.loadLevel("resource/map" + levelNum + ".txt");
 
-        // 绑定不同关卡目标分数
+        // Per-level target score
         if (levelNum == 1)      game.setTargetScore(150);
         else if (levelNum == 2) game.setTargetScore(200);
         else if (levelNum == 3) game.setTargetScore(230);
@@ -47,7 +47,7 @@ public class LevelManager {
 
     public void nextLevel(MapManager mapManager, EnemyManager enemyManager, CollisionCheck collisionCheck) {
         int levelNum = getLevelNum() + 1;
-        if (levelNum > 3) levelNum = 1; // 超过关卡上限循环回第1关
+        if (levelNum > 3) levelNum = 1; // Wrap to level 1 after max level
         loadLevel(100 + levelNum, mapManager, enemyManager, collisionCheck);
     }
 }

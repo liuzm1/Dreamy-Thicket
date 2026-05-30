@@ -32,7 +32,7 @@ public class HelpMenu implements GameScene {
 
     @Override
     public void draw(GameEngine engine) {
-        // 1. 绘制奇幻森林像素背景
+        // 1. Draw fantasy forest pixel background
         engine.drawImage(helpMenu_Img, 0, 0, 640, 640);
         engine.changeColor(new Color(25, 20, 15, 215));
         engine.drawSolidRectangle(115, 143, 410, 379);
@@ -42,13 +42,13 @@ public class HelpMenu implements GameScene {
         engine.drawImage(helpTitle_broad, 195, 40, 250, 110);
         engine.drawImage(helpTitle_broad, 195, 543, 250, 110);
         String fontName = "Monospaced";
-        // 4. 木牌文字（暗木色）
+        // 4. Wooden sign text (dark wood tone)
         engine.changeColor(55, 35, 15);
-        // 优雅的商业游戏标题规范
+        // Title typography
         drawTextWithOutline(engine, 209,100, "HOW TO PLAY", fontName, 34,Color.white);
         drawTextWithOutline(engine, 253, 610, "RETURN", fontName, 34,Color.white);
 
-        // ====================== 5. 核心文字排版（带一像素像素边缘描边） ======================
+        // ====================== 5. Main text layout (1px pixel outline) ======================
 
         // --- MISSION ---
         drawTextWithOutline(engine, 130, 185, "🌲 MISSION: SAVE THE FOREST 🌲", fontName, 17, Color.YELLOW);
@@ -68,25 +68,24 @@ public class HelpMenu implements GameScene {
         drawTextWithOutline(engine, 135, 415, "Ruby (+5) | Star (+10) | Oracle (?) -> 50/50 Luck!", fontName, 12, Color.WHITE);
         drawTextWithOutline(engine, 135, 440, "Watch out for Slimes, Shrooms and Fallen Sprites!", fontName, 12, new Color(255, 130, 130));
 
-        // ====================== 6. 底部草地平原：操作提示 ======================
+        // ====================== 6. Bottom grass area: control hints ======================
         engine.changeColor(Color.yellow);
         engine.drawBoldText(135, 505, "💡 Tip: Share Lives in Duo Mode! Watch your step!", fontName, 12);
 
-        // 7. 驱动小刺猬悬浮图标
+        // 7. Hedgehog hover selector icon
         DrawSelector ds = new DrawSelector(engine);
         ds.draw(engine, btnAreas);
     }
 
-    /** * 纯基础方法实现的像素边缘描边算法
-     */
+    /** Pixel outline via basic draw calls. */
     private void drawTextWithOutline(GameEngine engine, int x, int y, String text, String font, int size, Color textColor) {
-        // 周围十字格刷黑，产生纯正的 1px 描边
+        // Black cross pattern for 1px outline
         engine.changeColor(Color.BLACK);
         engine.drawBoldText(x - 1, y, text, font, size);
         engine.drawBoldText(x + 1, y, text, font, size);
         engine.drawBoldText(x, y - 1, text, font, size);
         engine.drawBoldText(x, y + 1, text, font, size);
-        // 中心着色
+        // Center fill
         engine.changeColor(textColor);
         engine.drawBoldText(x, y, text, font, size);
     }

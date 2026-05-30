@@ -22,9 +22,9 @@ import java.util.Comparator;
 import java.util.Queue;
 
 /**
- * 第二关敌人：追踪最近玩家。
- * 单人追 player1；双人追距离更近的那位。
- * 若与巡逻怪(Enemy1)冲突，则让 Enemy1 先走。
+ * Level 2 enemy: chases nearest player.
+ * Solo: player1; co-op: whichever player is closer.
+ * Yields to patrol enemies (Enemy1) on conflict.
  */
 public class ChaseEnemy extends AnimatedSpriteEnemy {
 
@@ -92,7 +92,7 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         }
     }
 
-    /** BFS 找通往目标的最短路径上的第一步（可绕石头/藤蔓） */
+    /** BFS: first step on shortest path to target (can route around stone/vines). */
     private int[] findNextStepBfs(int targetCol, int targetRow, Player target, Player[] players) {
         if (col == targetCol && row == targetRow) return null;
 
@@ -137,7 +137,7 @@ public class ChaseEnemy extends AnimatedSpriteEnemy {
         return null;
     }
 
-    /** BFS 失败时（被藤蔓/Enemy1 暂时挡住），选一步最接近玩家的可走方向 */
+    /** When BFS fails (blocked by vines/Enemy1), pick walkable direction closest to player. */
     private int[] pickMoveToward(int targetCol, int targetRow, Player target, Player[] players) {
         int[][] options = Arrays.copyOf(DIRS, DIRS.length);
         Arrays.sort(options, Comparator.comparingInt(d ->

@@ -12,7 +12,7 @@
  * ---------------------------------------------------------------------------
  **/
 package core;
-// 显式导入，确保可以正确引用到 GameEngine 内部的 AudioClip
+// Explicit import for GameEngine.AudioClip
 import core.GameEngine.AudioClip;
 
 public class AudioManager {
@@ -77,7 +77,7 @@ public class AudioManager {
     }
 
     private void switchBGM(AudioClip newBGM, float volume) {
-        // 如果新音频和当前正在播放的完全一致，则不需要重新处理，防止重叠
+        // Skip if same BGM already playing (avoid overlap)
         if (currentMusic == newBGM && currentMusic != null) {
             return;
         }
@@ -93,7 +93,7 @@ public class AudioManager {
     public void stopCurrentBGM() {
         if (currentMusic != null) {
             game.stopAudioLoop(currentMusic);
-            currentMusic = null; // 彻底清空标记
+            currentMusic = null; // Clear current track reference
         }
     }
 }

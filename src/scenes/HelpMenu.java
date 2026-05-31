@@ -52,7 +52,7 @@ public class HelpMenu implements GameScene {
 
         // --- MISSION ---
         drawTextWithOutline(engine, 130, 185, "🌲 MISSION: SAVE THE FOREST 🌲", fontName, 17, Color.YELLOW);
-        drawTextWithOutline(engine, 123, 212, "Collect Ruby Berries to reach Target Score in 60s!", fontName, 13, Color.WHITE);
+        drawTextWithOutline(engine, 123, 212, "Collect Ruby Berries to reach Target Score in 90s!", fontName, 13, Color.WHITE);
 
         // --- SKILLS ---
         drawTextWithOutline(engine, 130, 255, "🎮 TWIN SPRITES SKILLS", fontName, 15, new Color(100, 230, 255));
